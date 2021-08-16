@@ -1,7 +1,7 @@
 package main
 
 import (
-	"chat"
+	"internal\chat"
 )
 
 func main() {
