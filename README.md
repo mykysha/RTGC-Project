@@ -2,7 +2,7 @@
 
 **This project is still under construction**
 -
-**Built and executed on Go v16.6.7**
+**Built and executed on Go v16.16.7**
 
 >For running in your IDE, in terminal...
 >
