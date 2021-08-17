@@ -1,9 +1,9 @@
 package chat
 
-type Chat interface {
+type Room interface {
 	New()
 	Join()
-	Send()
+	Broadcast()
 	Leave()
 	Users()
 	Viewer()
