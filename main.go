@@ -1,8 +1,9 @@
 package main
 
 import (
-	_ "RTGC-Project/internal/chat"
 	"fmt"
+	_ "github.com/nndergunov/RTGC-Project/internal/chat"
+	_ "github.com/nndergunov/RTGC-Project/internal/server"
 )
 
 func main() {

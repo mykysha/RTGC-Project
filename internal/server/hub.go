@@ -1,4 +1,4 @@
-package chat
+package server
 
 type Hub struct {
 	Name   string
@@ -11,9 +11,9 @@ func (h *Hub) Join() {
 }
 
 func (h *Hub) Send() {
-	
+
 }
 
 func (h *Hub) Leave() {
-	
+
 }

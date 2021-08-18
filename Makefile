@@ -1,10 +1,13 @@
 go-formatter:
 	go fmt main.go
-	go fmt internal/chat/hub.go
-	go fmt internal/chat/init.go
-	go fmt internal/chat/room.go
-	go fmt internal/chat/server.go
-	go fmt internal/chat/session.go
+	go fmt github.com/nndergunov/RTGC-Project/internal/chat
+	go fmt github.com/nndergunov/RTGC-Project/internal/server
 
-go-build:
-	GOOS=darwin GOARCH=amd64 go build -o RTGC-Project
+go-build-mac:
+	GOOS=darwin GOARCH=amd64 go build github.com/nndergunov/RTGC-Project
+
+go-build-win:
+	GOOS=windows GOARCH=amd64 go build github.com/nndergunov/RTGC-Project
+
+go-build-linux:
+	GOOS=linux GOARCH=amd64 go build github.com/nndergunov/RTGC-Project

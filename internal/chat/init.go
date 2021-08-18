@@ -3,5 +3,5 @@ package chat
 import "fmt"
 
 func init() {
-	fmt.Println("Package initialized")
+	fmt.Println("Package chat initialized")
 }
