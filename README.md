@@ -31,8 +31,6 @@ install `Go`
 
 >Endpoints:
 >
-* `/`
-
 * `/v1/status`
 
 * `/v1/ws`

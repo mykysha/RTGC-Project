@@ -14,5 +14,5 @@ func (a *API) Init() {
 }
 
 func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-    a.Mux.ServeHTTP(w, r)
+	a.Mux.ServeHTTP(w, r)
 }
