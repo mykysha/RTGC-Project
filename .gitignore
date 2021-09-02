@@ -1,6 +1,6 @@
 ### Project-specific ###
-#Ignore build file
-RTGC-Project
+#Ignore build files
+bin
 
 ### Go ###
 # Binaries for programs and plugins

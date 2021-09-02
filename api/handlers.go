@@ -1,10 +1,13 @@
 package api
 
 import (
+	"io"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/nndergunov/RTGC-Project/api/v1"
 )
 
 // API init.
@@ -25,21 +28,23 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // /status handler.
 
-type Status struct {
-	State string `json:"state"`
-}
 
-func (a *API) statusHandler(w http.ResponseWriter, r *http.Request) {
-	response := Status{
+func (a API) statusHandler(w http.ResponseWriter, r *http.Request) {
+	response := v1.Status{
 		State: "up",
 	}
 
-	err := encode(w, response)
+	data, err := statusEncoder(response)
 	if err != nil {
-		log.Printf("json fail: %v", err)
-
-		return
+		a.Log.Println(err)
 	}
+
+	_, err = io.WriteString(w, string(data))
+	if err != nil {
+		a.Log.Println(err)
+	}
+
+	a.Log.Println("Gave status")
 }
 
 // /ws handler.
@@ -48,25 +53,69 @@ var Sessions = make(map[*websocket.Conn]bool)
 
 var upgrader = websocket.Upgrader{}
 
-func (a *API) wsHandler(w http.ResponseWriter, r *http.Request) {
+func (a API) wsHandler(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("ws fail: %v", err)
+		a.Log.Println("ws fail:", err)
 	}
 
 	Sessions[ws] = true
 
-	log.Println("ws connection succesfull")
-
-	err = ws.WriteMessage(websocket.TextMessage, []byte("Init correct"))
-	if err != nil {
-		log.Printf("ws fail: %v", err)
-	}
-
 	defer sessionClose(ws)
-	defer ws.Close()
+
+	a.Log.Println("New client")
+
+	wg := new(sync.WaitGroup)
+	wg.Add(1)
+
+	go a.reader(ws, wg)
+
+	wg.Wait()
 }
 
 func sessionClose(ws *websocket.Conn) {
 	Sessions[ws] = false
+
+	ws.Close()
 }
+
+func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for {
+		_, msg, err := ws.ReadMessage()
+		if err != nil {
+			a.Log.Println(err)
+
+			return
+		}
+
+		r, err := decode(msg)
+		if err != nil {
+			a.Log.Println(err)
+
+			return
+		}
+
+		log.Printf("\n" + "ID: %s, Action: %s, Username: %s, RoomName: %s", r.ID, r.Action, r.Username, r.RoomName)
+	}
+}
+
+func (a API) writer(ws *websocket.Conn, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	resp := v1.Response{ID: "your id", Error: false}
+	msg, err := encode(resp)
+	if err != nil {
+		a.Log.Println(err)
+
+		return
+	}
+
+	err = ws.WriteMessage(websocket.TextMessage, msg)
+	if err != nil {
+		a.Log.Println(err)
+
+		return
+		}
+	}

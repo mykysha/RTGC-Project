@@ -1,20 +1,25 @@
 package main
 
 import (
-	"log"
+	"sync"
 
-	"github.com/gorilla/websocket"
+	client "github.com/nndergunov/RTGC-Project/cmd/client/v1"
 )
 
 const addr = "ws://localhost:8080/v1/ws"
 
 func main() {
-	conn, _, err := websocket.DefaultDialer.Dial(addr, nil)
-	if err != nil {
-		log.Fatal("connection error:", err)
-	}
+	id := client.GetInfo()
 
-	log.Printf("connected to %s", addr)
-
+	conn := client.Dial(addr)
 	defer conn.Close()
+
+	wg := new(sync.WaitGroup)
+
+	wg.Add(2)
+
+	go client.Reader(id, conn, wg)
+	go client.Writer(id, conn, wg)
+
+	wg.Wait()
 }

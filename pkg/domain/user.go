@@ -1,6 +1,6 @@
 package domain
 
-type UserCreateRequest struct {
+type User struct {
 	ID    string   `json:"id"`
 	Chats []string `json:"chats"`
 }
