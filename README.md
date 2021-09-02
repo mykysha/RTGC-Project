@@ -16,7 +16,7 @@ install `Go`
 -
 >For running server in your IDE, in terminal...
 >
-* `go run main.go`
+* `make go-server`
 
 >For running client in your IDE, in terminal...
 >
@@ -31,8 +31,10 @@ install `Go`
 
 >Endpoints:
 >
+`status check:`
 * `/v1/status`
 
+ `websocket connection upgrader:`
 * `/v1/ws`
 
 
@@ -42,15 +44,15 @@ install `Go`
 >
 * `make go-client`
 
->To build for windows-amd64 run
+>To build for windows-amd64 run (creates folder in bin/win)
 >
 * `make go-build-win`
 
->To build for mac-amd64 run
+>To build for mac-amd64 run (creates folder in bin/mac)
 >
 * `make go-build-mac`
 
->To build for linux-amd64 run
+>To build for linux-amd64 run (creates folder in bin/linux)
 >
 * `make go-build-linux`
 

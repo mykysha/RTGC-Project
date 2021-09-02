@@ -11,6 +11,11 @@ func encode(w http.ResponseWriter, s Status) error {
 	if err != nil {
 		return err
 	}
-	io.WriteString(w, string(data))
+
+	_, err = io.WriteString(w, string(data))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

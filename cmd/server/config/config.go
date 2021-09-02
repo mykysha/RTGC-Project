@@ -1,11 +1,11 @@
-package httpserver
+package config
 
 import (
 	"net/http"
 	"time"
 )
 
-func newConfigServer() http.Server {
+func newConfigServer() *http.Server {
 	srv := http.Server{
 		Addr:              ":8080",
 		ReadTimeout:       1 * time.Second,
@@ -13,5 +13,6 @@ func newConfigServer() http.Server {
 		IdleTimeout:       3 * time.Second,
 		ReadHeaderTimeout: 2 * time.Second,
 	}
-	return srv
+
+	return &srv
 }

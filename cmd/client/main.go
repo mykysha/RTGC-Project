@@ -13,6 +13,8 @@ func main() {
 	if err != nil {
 		log.Fatal("connection error:", err)
 	}
+
 	log.Printf("connected to %s", addr)
+
 	defer conn.Close()
 }
