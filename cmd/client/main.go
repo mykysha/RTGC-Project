@@ -15,11 +15,12 @@ func main() {
 	defer conn.Close()
 
 	wg := new(sync.WaitGroup)
+	done := make(chan bool)
 
 	wg.Add(2)
 
-	go client.Reader(id, conn, wg)
-	go client.Writer(id, conn, wg)
+	go client.Reader(id, conn, wg, done)
+	go client.Writer(id, conn, wg, done)
 
 	wg.Wait()
 }

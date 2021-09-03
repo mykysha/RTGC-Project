@@ -12,7 +12,7 @@ import (
 )
 
 // Writes to an open ws-connection.
-func Writer(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
+func Writer(id string, conn *websocket.Conn, wg *sync.WaitGroup, done chan bool) {
 	defer wg.Done()
 
 	fmt.Println("Example command\t 'join:USERNAME:ROOMNAME'")
@@ -23,29 +23,40 @@ func Writer(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
 		fmt.Printf("Write command here ->\t")
 
 		msg, _ := reader.ReadString('\n')
+
 		msg = strings.ReplaceAll(msg, "\n", "")
 
-		m := strings.Split(string(msg), ":")
-		if len(m) != 3 {
+		if !strings.Contains(msg, ":") {
 			log.Println("unknown command type")
+
+			continue
 		}
 
-		log.Printf("Sent: action - '%s', username - '%s', roomname - '%s'", m[0], m[1], m[2])
+		m := strings.Split(msg, ":")
+		if len(m) != 3 {
+			log.Println("unknown command type")
+
+			continue
+		}
+
+		log.Printf("Sending: action - '%s', username - '%s', roomname - '%s'", m[0], m[1], m[2])
 
 		r := Request{ID: id, Action: m[0], Username: m[1], RoomName: m[2]}
 
 		req, err := encode(r)
 		if err != nil {
 			log.Println("Converting: ", err)
-			
-			return
+
+			continue
 		}
 
 		err = conn.WriteMessage(websocket.TextMessage, req)
 		if err != nil {
 			log.Println("Writing: ", err)
-			
-			return
+
+			continue
 		}
+
+		<-done
 	}
 }

@@ -1,3 +1,7 @@
+go-lint:
+	gofmt -l -s -w .
+	golangci-lint run --enable-all
+
 go-formatter:
 	gofmt -l -s -w .
 

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/nndergunov/RTGC-Project/api/v1"
+	"github.com/nndergunov/RTGC-Project/pkg/app"
 )
 
 // API init.
@@ -26,9 +28,7 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.Mux.ServeHTTP(w, r)
 }
 
-// /status handler.
-
-
+// /status.
 func (a API) statusHandler(w http.ResponseWriter, r *http.Request) {
 	response := v1.Status{
 		State: "up",
@@ -47,12 +47,13 @@ func (a API) statusHandler(w http.ResponseWriter, r *http.Request) {
 	a.Log.Println("Gave status")
 }
 
-// /ws handler.
+// /ws.
 
 var Sessions = make(map[*websocket.Conn]bool)
 
 var upgrader = websocket.Upgrader{}
 
+// Handles ws connection.
 func (a API) wsHandler(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -73,12 +74,14 @@ func (a API) wsHandler(w http.ResponseWriter, r *http.Request) {
 	wg.Wait()
 }
 
+// Closes session with the client.
 func sessionClose(ws *websocket.Conn) {
 	Sessions[ws] = false
 
 	ws.Close()
 }
 
+// Gets requests from the client.
 func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -86,25 +89,39 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
 			a.Log.Println(err)
+			a.writer(ws, "err", true, err)
 
-			return
+			continue
 		}
 
 		r, err := decode(msg)
 		if err != nil {
 			a.Log.Println(err)
+			a.writer(ws, "err", true, err)
 
-			return
+			continue
 		}
 
-		log.Printf("\n" + "ID: %s, Action: %s, Username: %s, RoomName: %s", r.ID, r.Action, r.Username, r.RoomName)
+		log.Printf("\n"+"ID: %s, Action: %s, Username: %s, RoomName: %s", r.ID, r.Action, r.Username, r.RoomName)
+
+		switch r.Action {
+		case "join":
+			err := app.Connecter(r.Username, r.RoomName)
+			if err != nil {
+				a.writer(ws, r.ID, true, err)
+			}
+		default:
+			a.writer(ws, r.ID, true, fmt.Errorf("Action not supported"))
+		}
+
+		a.writer(ws, r.ID, false, nil)
 	}
 }
 
-func (a API) writer(ws *websocket.Conn, wg *sync.WaitGroup) {
-	defer wg.Done()
+// Responds to the client.
+func (a API) writer(ws *websocket.Conn, id string, e bool, err error) {
+	resp := v1.Response{ID: id, Error: e, ErrText: fmt.Sprintf("%v", err)}
 
-	resp := v1.Response{ID: "your id", Error: false}
 	msg, err := encode(resp)
 	if err != nil {
 		a.Log.Println(err)
@@ -117,5 +134,5 @@ func (a API) writer(ws *websocket.Conn, wg *sync.WaitGroup) {
 		a.Log.Println(err)
 
 		return
-		}
 	}
+}

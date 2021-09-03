@@ -1,6 +1,6 @@
 package domain
 
 type User struct {
-	ID    string   `json:"id"`
-	Chats []string `json:"chats"`
+	ID    string
+	Chats []string
 }

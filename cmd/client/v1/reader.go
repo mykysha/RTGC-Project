@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"log"
 	"sync"
 
@@ -9,25 +8,32 @@ import (
 )
 
 // Reads from an open ws-connection.
-func Reader(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
+func Reader(id string, conn *websocket.Conn, wg *sync.WaitGroup, done chan bool) {
 	defer wg.Done()
 
 	for {
 		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			log.Println("Read: ", err)
 
-			return
+		if err != nil {
+			log.Println("Read err: ", err)
+			done <- true
+
+			continue
 		}
 
 		resp, err := decode(msg)
 		if err != nil {
-			log.Println("Decode: ", err)
+			log.Println("Decode err: ", err)
+			done <- true
 
-			return
+			continue
 		}
 
-		fmt.Println(resp.Error)
-
+		if resp.Error {
+			log.Printf("\n"+"Error: %v", resp.Error)
+		} else {
+			log.Println("Completed with no errors")
+		}
+		done <- true
 	}
 }
