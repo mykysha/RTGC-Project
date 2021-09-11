@@ -6,14 +6,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// Dials to websocket connection on server.
-func Dial(addr string) *websocket.Conn {
+// Dialer dials to websocket connection on server.
+func Dialer(addr string) *websocket.Conn {
 	conn, _, err := websocket.DefaultDialer.Dial(addr, nil)
 	if err != nil {
-		log.Fatal("Connection error:", err)
+		log.Fatal("connection error:", err)
 	}
 
-	log.Printf("\n"+"Connected to %s", addr)
+	log.Printf("\n"+"connected to %s", addr)
 
 	return conn
 }

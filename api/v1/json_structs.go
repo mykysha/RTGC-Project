@@ -1,9 +1,5 @@
 package v1
 
-import (
-	"encoding/json"
-)
-
 type Request struct {
 	ID       string `json:"id"`
 	Action   string `json:"action"`
@@ -24,24 +20,6 @@ type Response struct {
 	FromRoom    string `json:"from_room,omitempty"`
 }
 
-// encoder to JSON.
-func encoder(r Request) ([]byte, error) {
-	data, err := json.Marshal(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
-// decoder from JSON.
-func decoder(msg []byte) (*Response, error) {
-	var resp Response
-
-	err := json.Unmarshal(msg, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return &resp, nil
+type State struct {
+	State string `json:"state"`
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// Reads from an open ws-connection.
+// Reader gets responses from an open ws-connection.
 func Reader(id string, conn *websocket.Conn, wg *sync.WaitGroup, done chan bool) {
 	defer wg.Done()
 
@@ -15,25 +15,30 @@ func Reader(id string, conn *websocket.Conn, wg *sync.WaitGroup, done chan bool)
 		_, msg, err := conn.ReadMessage()
 
 		if err != nil {
-			log.Println("Read err: ", err)
+			log.Printf("Read err: %v", err)
 			done <- true
 
 			continue
 		}
 
-		resp, err := decode(msg)
+		resp, err := decoder(msg)
 		if err != nil {
-			log.Println("Decode err: ", err)
+			log.Printf("Decode err: %v", err)
 			done <- true
 
 			continue
+		}
+
+		if resp.ID != id {
+			log.Printf("ID missmatch")
 		}
 
 		if resp.Error {
-			log.Printf("\n"+"Error: %v", resp.Error)
+			log.Printf("Error: %v", resp.Error)
 		} else {
-			log.Println("Completed with no errors")
+			log.Printf("Completed with no errors")
 		}
+
 		done <- true
 	}
 }

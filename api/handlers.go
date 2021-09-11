@@ -29,22 +29,24 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // /status.
-func (a API) statusHandler(w http.ResponseWriter, r *http.Request) {
-	response := v1.Status{
+func (a API) statusHandler(w http.ResponseWriter, _ *http.Request) {
+	resp := v1.State{
 		State: "up",
 	}
 
-	data, err := statusEncoder(response)
+	data, err := statusEncoder(resp)
 	if err != nil {
-		a.Log.Println(err)
+		a.Log.Printf("State encoder: %v", err)
+		return
 	}
 
 	_, err = io.WriteString(w, string(data))
 	if err != nil {
-		a.Log.Println(err)
+		a.Log.Printf("State write: %v", err)
+		return
 	}
 
-	a.Log.Println("Gave status")
+	a.Log.Printf("Gave status %s", resp.State)
 }
 
 // /ws.
@@ -57,14 +59,21 @@ var upgrader = websocket.Upgrader{}
 func (a API) wsHandler(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		a.Log.Println("ws fail:", err)
+		a.Log.Printf("ws fail: %v", err)
 	}
 
 	Sessions[ws] = true
 
-	defer sessionClose(ws)
+	defer func(ws *websocket.Conn) {
+		Sessions[ws] = false
 
-	a.Log.Println("New client")
+		err := ws.Close()
+		if err != nil {
+			a.Log.Printf("close fail: %v", err)
+		}
+	}(ws)
+
+	a.Log.Printf("New client added")
 
 	wg := new(sync.WaitGroup)
 	wg.Add(1)
@@ -74,13 +83,6 @@ func (a API) wsHandler(w http.ResponseWriter, r *http.Request) {
 	wg.Wait()
 }
 
-// Closes session with the client.
-func sessionClose(ws *websocket.Conn) {
-	Sessions[ws] = false
-
-	ws.Close()
-}
-
 // Gets requests from the client.
 func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -88,7 +90,7 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
-			a.Log.Println(err)
+			a.Log.Printf("reader: %v", err)
 			a.writer(ws, "err", true, err)
 
 			continue
@@ -96,22 +98,26 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 
 		r, err := decode(msg)
 		if err != nil {
-			a.Log.Println(err)
+			a.Log.Printf("decoder: %v", err)
 			a.writer(ws, "err", true, err)
 
 			continue
 		}
 
-		log.Printf("\n"+"ID: %s, Action: %s, Username: %s, RoomName: %s", r.ID, r.Action, r.Username, r.RoomName)
+		log.Printf("\n"+"ID: %s, Action: %s, UserName: %s, RoomName: %s", r.ID, r.Action, r.UserName, r.RoomName)
 
 		switch r.Action {
 		case "join":
-			err := app.Connecter(r.Username, r.RoomName)
-			if err != nil {
-				a.writer(ws, r.ID, true, err)
+			app.Connecter(r.ID, r.UserName, r.RoomName)
+		case "send":
+			app.Messenger(r.ID, r.RoomName, r.Text)
+		case "leave":
+			if r.Text != "-" {
+				app.Messenger(r.ID, r.RoomName, r.Text)
 			}
+			app.Leaver(r.UserName, r.RoomName)
 		default:
-			a.writer(ws, r.ID, true, fmt.Errorf("Action not supported"))
+			a.writer(ws, r.ID, true, fmt.Errorf("action not supported"))
 		}
 
 		a.writer(ws, r.ID, false, nil)
@@ -124,14 +130,14 @@ func (a API) writer(ws *websocket.Conn, id string, e bool, err error) {
 
 	msg, err := encode(resp)
 	if err != nil {
-		a.Log.Println(err)
+		a.Log.Printf("writer: %v", err)
 
 		return
 	}
 
 	err = ws.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
-		a.Log.Println(err)
+		a.Log.Print(err)
 
 		return
 	}

@@ -2,5 +2,5 @@ package domain
 
 type Room struct {
 	Name     string
-	UserList []string
+	UserList map[string]string
 }

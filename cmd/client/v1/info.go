@@ -2,11 +2,14 @@ package v1
 
 import "fmt"
 
-// Gets userID.
-func GetInfo() string {
+// GetInfo receives user information.
+func GetInfo() (string, error) {
 	var id string
 	fmt.Println("Please enter your 'ID'")
-	fmt.Scan(&id)
+	_, err := fmt.Scan(&id)
+	if err != nil {
+		return "", err
+	}
 
-	return id
+	return id, nil
 }

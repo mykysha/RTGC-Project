@@ -25,10 +25,10 @@ func MainServer() (mux *http.ServeMux) {
 
 func New() http.Handler {
 	mux := MainServer()
-	log := log.New(os.Stdout, "server ", log.LstdFlags)
+	logger := log.New(os.Stdout, "server ", log.LstdFlags)
 	a := &api.API{
 		Mux: mux,
-		Log: log,
+		Log: logger,
 	}
 	a.Init()
 
