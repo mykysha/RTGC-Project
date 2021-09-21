@@ -10,10 +10,10 @@ import (
 func Dialer(addr string) *websocket.Conn {
 	conn, _, err := websocket.DefaultDialer.Dial(addr, nil)
 	if err != nil {
-		log.Fatal("connection error:", err)
+		log.Fatal("\n"+"connection error:", err)
 	}
 
-	log.Printf("\n"+"connected to %s", addr)
+	log.Printf("\n"+"connected to %s"+"\n", addr)
 
 	return conn
 }

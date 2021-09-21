@@ -37,12 +37,14 @@ func (a API) statusHandler(w http.ResponseWriter, _ *http.Request) {
 	data, err := statusEncoder(resp)
 	if err != nil {
 		a.Log.Printf("State encoder: %v", err)
+
 		return
 	}
 
 	_, err = io.WriteString(w, string(data))
 	if err != nil {
 		a.Log.Printf("State write: %v", err)
+
 		return
 	}
 
@@ -52,6 +54,7 @@ func (a API) statusHandler(w http.ResponseWriter, _ *http.Request) {
 // /ws.
 
 var Sessions = make(map[*websocket.Conn]bool)
+var IDSessions = make(map[string]*websocket.Conn)
 
 var upgrader = websocket.Upgrader{}
 
@@ -65,7 +68,7 @@ func (a API) wsHandler(w http.ResponseWriter, r *http.Request) {
 	Sessions[ws] = true
 
 	defer func(ws *websocket.Conn) {
-		Sessions[ws] = false
+		delete(Sessions, ws)
 
 		err := ws.Close()
 		if err != nil {
@@ -91,7 +94,7 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
 			a.Log.Printf("reader: %v", err)
-			a.writer(ws, "err", true, err)
+			a.errorWriter(ws, "err", err)
 
 			continue
 		}
@@ -99,38 +102,127 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 		r, err := decode(msg)
 		if err != nil {
 			a.Log.Printf("decoder: %v", err)
-			a.writer(ws, "err", true, err)
+			a.errorWriter(ws, "err", err)
 
 			continue
 		}
 
-		log.Printf("\n"+"ID: %s, Action: %s, UserName: %s, RoomName: %s", r.ID, r.Action, r.UserName, r.RoomName)
+		if _, ok := IDSessions[r.ID]; !ok {
+			IDSessions[r.ID] = ws
+		}
 
 		switch r.Action {
 		case "join":
-			app.Connecter(r.ID, r.UserName, r.RoomName)
-		case "send":
-			app.Messenger(r.ID, r.RoomName, r.Text)
-		case "leave":
-			if r.Text != "-" {
-				app.Messenger(r.ID, r.RoomName, r.Text)
-			}
-			app.Leaver(r.UserName, r.RoomName)
-		default:
-			a.writer(ws, r.ID, true, fmt.Errorf("action not supported"))
-		}
+			log.Printf("\n"+"ID: '%s', Action: '%s', UserName: '%s', RoomName: '%s'", r.ID, r.Action, r.UserName, r.RoomName)
+			conErr := app.Connecter(r.ID, r.UserName, r.RoomName)
 
-		a.writer(ws, r.ID, false, nil)
+			if conErr != nil {
+				a.errorWriter(ws, r.ID, conErr)
+			} else {
+				a.indicator(ws, r.ID)
+			}
+
+		case "send":
+			log.Printf("\n"+"ID: '%s', Action: '%s', RoomName: '%s', Text: '%s'", r.ID, r.Action, r.RoomName, r.Text)
+
+			fromUser, fromRoom, message, toID, messageErr := app.Messenger(r.ID, r.RoomName, r.Text)
+			if messageErr != nil {
+				a.errorWriter(ws, r.ID, messageErr)
+			} else {
+				wgSender := new(sync.WaitGroup)
+
+				for _, id := range toID {
+					wgSender.Add(1)
+					go a.sender(IDSessions[id], id, fromUser, fromRoom, message)
+				}
+				wgSender.Wait()
+				a.indicator(ws, r.ID)
+			}
+
+		case "leave":
+			log.Printf("\n"+"ID: '%s', Action: '%s', RoomName: '%s', Text: '%s'", r.ID, r.Action, r.RoomName, r.Text)
+
+			if r.Text != "-" {
+				fromUser, fromRoom, message, toID, messageErr := app.Messenger(r.ID, r.RoomName, r.Text)
+				if err != nil {
+					a.errorWriter(ws, r.ID, messageErr)
+				} else {
+					wgSender := new(sync.WaitGroup)
+
+					for _, id := range toID {
+						wgSender.Add(1)
+						go a.sender(IDSessions[id], id, fromUser, fromRoom, message)
+					}
+					wgSender.Wait()
+					a.indicator(ws, r.ID)
+				}
+			}
+
+			leaveErr := app.Leaver(r.ID, r.RoomName)
+			if leaveErr != nil {
+				a.errorWriter(ws, r.ID, leaveErr)
+			} else {
+				a.indicator(ws, r.ID)
+			}
+
+		default:
+			unknownAction := fmt.Errorf("action '%s' not supported", r.Action)
+			a.errorWriter(ws, r.ID, unknownAction)
+		}
 	}
 }
 
-// Responds to the client.
-func (a API) writer(ws *websocket.Conn, id string, e bool, err error) {
-	resp := v1.Response{ID: id, Error: e, ErrText: fmt.Sprintf("%v", err)}
+// errorWriter sends errors to the client.
+func (a API) errorWriter(ws *websocket.Conn, id string, err error) {
+	resp := v1.Response{ID: id, Error: true, ErrText: fmt.Sprintf("%v", err)}
 
 	msg, err := encode(resp)
 	if err != nil {
-		a.Log.Printf("writer: %v", err)
+		a.Log.Printf("errorWriter: %v", err)
+
+		return
+	}
+
+	err = ws.WriteMessage(websocket.TextMessage, msg)
+	if err != nil {
+		a.Log.Print(err)
+
+		return
+	}
+}
+
+func (a API) indicator(ws *websocket.Conn, id string) {
+	resp := v1.Response{ID: id, Error: false}
+
+	msg, err := encode(resp)
+	if err != nil {
+		a.Log.Printf("indicator: %v", err)
+
+		return
+	}
+
+	err = ws.WriteMessage(websocket.TextMessage, msg)
+	if err != nil {
+		a.Log.Printf("indicator: %v", err)
+
+		return
+	}
+}
+
+// sender sends message to desired user.
+func (a API) sender(ws *websocket.Conn, id, fromUser, fromRoom, message string) {
+	resp := v1.Response{
+		ID:          id,
+		Error:       false,
+		IsMessage:   true,
+		MessageText: message,
+		FromUser:    fromUser,
+		FromRoom:    fromRoom,
+	}
+
+	msg, err := encode(resp)
+	if err != nil {
+		a.Log.Printf("errorWriter: %v", err)
 
 		return
 	}

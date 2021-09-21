@@ -26,11 +26,11 @@ func main() {
 	}(conn)
 
 	wg := new(sync.WaitGroup)
-	done := make(chan bool)
+
 	wg.Add(2)
 
-	go client.Reader(id, conn, wg, done)
-	go client.Communicator(id, conn, wg, done)
+	go client.Reader(id, conn, wg)
+	go client.Communicator(id, conn, wg)
 
 	wg.Wait()
 }

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -8,37 +9,37 @@ import (
 )
 
 // Reader gets responses from an open ws-connection.
-func Reader(id string, conn *websocket.Conn, wg *sync.WaitGroup, done chan bool) {
+func Reader(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
 		_, msg, err := conn.ReadMessage()
 
 		if err != nil {
-			log.Printf("Read err: %v", err)
-			done <- true
+			log.Printf("\n"+"Read err: %v"+"\n", err)
 
 			continue
 		}
 
 		resp, err := decoder(msg)
 		if err != nil {
-			log.Printf("Decode err: %v", err)
-			done <- true
+			log.Printf("\n"+"Decode err: %v"+"\n", err)
 
 			continue
 		}
 
 		if resp.ID != id {
-			log.Printf("ID missmatch")
+			log.Printf("\n" + "ID missmatch" + "\n")
 		}
 
 		if resp.Error {
-			log.Printf("Error: %v", resp.Error)
+			log.Printf("Error: %v", resp.ErrText)
 		} else {
-			log.Printf("Completed with no errors")
+			log.Printf("\n" + "Completed with no errors" + "\n")
 		}
 
-		done <- true
+		if resp.IsMessage {
+			fmt.Printf("\n"+"%s : %s - %s"+"\n", resp.FromRoom, resp.FromUser, resp.MessageText)
+		}
 	}
 }

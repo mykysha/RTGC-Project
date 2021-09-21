@@ -12,7 +12,7 @@ import (
 )
 
 // Communicator handles user-to-server communication.
-func Communicator(id string, conn *websocket.Conn, wg *sync.WaitGroup, done chan bool) {
+func Communicator(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	fmt.Printf("\n" + "Possible commands:" +
@@ -25,15 +25,17 @@ func Communicator(id string, conn *websocket.Conn, wg *sync.WaitGroup, done chan
 	for {
 		req, err := CL()
 		if err != nil {
-			log.Printf("Request error: %v", err)
+			log.Printf("\n"+"Request error: %v"+"\n", err)
+
+			continue
 		}
 
 		err = WsWriter(id, conn, req)
 		if err != nil {
-			log.Printf("Writing error: %v", err)
-		}
+			log.Printf("\n"+"Writing error: %v"+"\n", err)
 
-		<-done
+			continue
+		}
 	}
 }
 
@@ -60,13 +62,14 @@ func CL() ([]string, error) {
 		return nil, err
 	}
 
-	log.Printf("Sending: action - '%s', username - '%s', roomname - '%s'", m[0], m[1], m[2])
+	log.Printf("Sending: action - '%s', '%s', '%s'", m[0], m[1], m[2])
+
 	return m, nil
 }
 
 // WsWriter sends requests to an open ws-connection.
 func WsWriter(id string, conn *websocket.Conn, m []string) error {
-	r := Request{ID: id, Action: m[0],RoomName: m[1]}
+	r := Request{ID: id, Action: m[0], RoomName: m[1]}
 
 	switch r.Action {
 	case "join":
@@ -75,18 +78,20 @@ func WsWriter(id string, conn *websocket.Conn, m []string) error {
 		r.Text = m[2]
 	default:
 		ComErr := fmt.Errorf("unknown command")
+
 		return ComErr
 	}
 
 	req, err := encoder(r)
 	if err != nil {
-		ConvErr := fmt.Errorf("converting: %v", err)
+		ConvErr := fmt.Errorf("converting: %w", err)
+
 		return ConvErr
 	}
 
 	err = conn.WriteMessage(websocket.TextMessage, req)
 	if err != nil {
-		WrErr := fmt.Errorf("writing: %v", err)
+		WrErr := fmt.Errorf("writing: %w", err)
 
 		return WrErr
 	}
