@@ -14,10 +14,8 @@ type Request struct {
 
 type Response struct {
 	ID string `json:"id"`
-
 	Error   bool   `json:"err"`
 	ErrText string `json:"errtext,omitempty"`
-
 	IsMessage   bool   `json:"is_message"`
 	MessageText string `json:"message_text,omitempty"`
 	FromUser    string `json:"from_user_id,omitempty"`

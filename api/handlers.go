@@ -209,7 +209,7 @@ func (a API) actionHandler(r v1.Request) error {
 
 // joinHandler handles join request.
 func (a API) joinHandler(r v1.Request) error {
-	log.Printf("\n"+"ID: '%s', Action: '%s', UserName: '%s', RoomName: '%s'", r.ID, r.Action, r.UserName, r.RoomName)
+	log.Printf("\n"+"ID: '%s', Action: 'join', UserName: '%s', RoomName: '%s'", r.ID, r.UserName, r.RoomName)
 	conErr := app.Connecter(r.ID, r.UserName, r.RoomName)
 
 	return conErr
@@ -217,7 +217,7 @@ func (a API) joinHandler(r v1.Request) error {
 
 // sendHandler handles send request.
 func (a API) sendHandler(r v1.Request) error {
-	log.Printf("\n"+"ID: '%s', Action: '%s', RoomName: '%s', Text: '%s'", r.ID, r.Action, r.RoomName, r.Text)
+	log.Printf("\n"+"ID: '%s', Action: 'send', RoomName: '%s', Text: '%s'", r.ID, r.RoomName, r.Text)
 
 	fromUser, fromRoom, message, toID, messageErr := app.Messenger(r.ID, r.RoomName, r.Text)
 	if messageErr != nil {
@@ -239,13 +239,10 @@ func (a API) sendHandler(r v1.Request) error {
 
 // leaveHandler handles leave request.
 func (a API) leaveHandler(r v1.Request) error {
-	log.Printf("\n"+"ID: '%s', Action: '%s', RoomName: '%s', Text: '%s'", r.ID, r.Action, r.RoomName, r.Text)
+	log.Printf("\n"+"ID: '%s', Action: 'leave', RoomName: '%s'", r.ID, r.RoomName)
 
 	if r.Text != "-" {
-		sendErr := a.sendHandler(r)
-		if sendErr != nil {
-			return sendErr
-		}
+		log.Printf("'%s' reason to leave: '%s'", r.ID, r.Text)
 	}
 
 	leaveErr := app.Leaver(r.ID, r.RoomName)

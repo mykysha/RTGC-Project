@@ -37,7 +37,7 @@ func IDToUserName(r *dom.Room, userID, roomName string) (string, error) {
 	}
 
 	if !found {
-		errNoUser := fmt.Errorf("no user with id %s found in room %s", userID, roomName)
+		errNoUser := fmt.Errorf("no user with id '%s' found in room '%s'", userID, roomName)
 
 		return "", errNoUser
 	}

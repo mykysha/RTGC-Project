@@ -20,7 +20,8 @@ func Communicator(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
 		"\n\t\t" + "(if no room with such name exists, it will be created)" +
 		"\n\n\t" + "'send:ROOMNAME:TEXT'" +
 		"\n\n\t" + "'leave:ROOMNAME:TEXT'" +
-		"\n\t\t" + "(if you don't want to leave goodbye message just type '-')")
+		"\n\t\t" + "(if you don't want to write reason why you leave just type '-')" +
+		"\n\t\t" + "(possible reasons: spam\ttoxic community\ttoo many ads\tetc.)")
 
 	for {
 		req, err := CL()

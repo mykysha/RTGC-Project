@@ -13,7 +13,7 @@ func Dialer(addr string) *websocket.Conn {
 		log.Fatal("\n"+"connection error:", err)
 	}
 
-	log.Printf("\n"+"connected to %s"+"\n", addr)
+	log.Printf("\n"+"connected to '%s'"+"\n", addr)
 
 	return conn
 }
