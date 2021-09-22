@@ -17,6 +17,15 @@ func Connecter(id, userName, roomName string) error {
 
 	r := roomList[roomName]
 
+	userNameInRoom, isInErr := IDToUserName(r, id, roomName)
+	if isInErr == nil {
+		errID := fmt.Errorf("user with id %s "+
+			"is already connected to the room %s "+
+			"under the username %s", id, roomName, userNameInRoom)
+
+		return errID
+	}
+
 	if UserNameInRoom(r, userName) {
 		errUname := fmt.Errorf("username '%s' already exists in this room", userName)
 
