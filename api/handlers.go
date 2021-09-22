@@ -111,34 +111,11 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 			IDSessions[r.ID] = ws
 		}
 
-		switch r.Action {
-		case "join":
-			joinErr := a.joinHandler(r)
-			if joinErr != nil {
-				a.errorWriter(ws, r.ID, joinErr)
-			} else {
-				a.indicator(ws, r.ID)
-			}
-
-		case "send":
-			sendErr := a.sendHandler(r)
-			if sendErr != nil {
-				a.errorWriter(ws, r.ID, sendErr)
-			} else {
-				a.indicator(ws, r.ID)
-			}
-
-		case "leave":
-			leaveErr := a.leaveHandler(r)
-			if leaveErr != nil {
-				a.errorWriter(ws, r.ID, leaveErr)
-			} else {
-				a.indicator(ws, r.ID)
-			}
-
-		default:
-			unknownAction := fmt.Errorf("action '%s' not supported", r.Action)
-			a.errorWriter(ws, r.ID, unknownAction)
+		actionErr := a.actionHandler(r)
+		if actionErr != nil {
+			a.errorWriter(ws, r.ID, actionErr)
+		} else {
+			a.indicator(ws, r.ID)
 		}
 	}
 }
@@ -203,6 +180,30 @@ func (a API) sender(ws *websocket.Conn, id, fromUser, fromRoom, message string) 
 		a.Log.Print(err)
 
 		return
+	}
+}
+
+func (a API) actionHandler(r v1.Request) error {
+	switch r.Action {
+	case "join":
+		joinErr := a.joinHandler(r)
+
+		return joinErr
+
+	case "send":
+		sendErr := a.sendHandler(r)
+
+		return sendErr
+
+	case "leave":
+		leaveErr := a.leaveHandler(r)
+
+		return leaveErr
+
+	default:
+		unknownAction := fmt.Errorf("action '%s' not supported", r.Action)
+		
+		return unknownAction
 	}
 }
 
