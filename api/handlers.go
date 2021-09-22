@@ -113,52 +113,23 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 
 		switch r.Action {
 		case "join":
-			log.Printf("\n"+"ID: '%s', Action: '%s', UserName: '%s', RoomName: '%s'", r.ID, r.Action, r.UserName, r.RoomName)
-			conErr := app.Connecter(r.ID, r.UserName, r.RoomName)
-
-			if conErr != nil {
-				a.errorWriter(ws, r.ID, conErr)
+			joinErr := a.joinHandler(r)
+			if joinErr != nil {
+				a.errorWriter(ws, r.ID, joinErr)
 			} else {
 				a.indicator(ws, r.ID)
 			}
 
 		case "send":
-			log.Printf("\n"+"ID: '%s', Action: '%s', RoomName: '%s', Text: '%s'", r.ID, r.Action, r.RoomName, r.Text)
-
-			fromUser, fromRoom, message, toID, messageErr := app.Messenger(r.ID, r.RoomName, r.Text)
-			if messageErr != nil {
-				a.errorWriter(ws, r.ID, messageErr)
+			sendErr := a.sendHandler(r)
+			if sendErr != nil {
+				a.errorWriter(ws, r.ID, sendErr)
 			} else {
-				wgSender := new(sync.WaitGroup)
-
-				for _, id := range toID {
-					wgSender.Add(1)
-					go a.sender(IDSessions[id], id, fromUser, fromRoom, message)
-				}
-				wgSender.Wait()
 				a.indicator(ws, r.ID)
 			}
 
 		case "leave":
-			log.Printf("\n"+"ID: '%s', Action: '%s', RoomName: '%s', Text: '%s'", r.ID, r.Action, r.RoomName, r.Text)
-
-			if r.Text != "-" {
-				fromUser, fromRoom, message, toID, messageErr := app.Messenger(r.ID, r.RoomName, r.Text)
-				if err != nil {
-					a.errorWriter(ws, r.ID, messageErr)
-				} else {
-					wgSender := new(sync.WaitGroup)
-
-					for _, id := range toID {
-						wgSender.Add(1)
-						go a.sender(IDSessions[id], id, fromUser, fromRoom, message)
-					}
-					wgSender.Wait()
-					a.indicator(ws, r.ID)
-				}
-			}
-
-			leaveErr := app.Leaver(r.ID, r.RoomName)
+			leaveErr := a.leaveHandler(r)
 			if leaveErr != nil {
 				a.errorWriter(ws, r.ID, leaveErr)
 			} else {
@@ -233,4 +204,53 @@ func (a API) sender(ws *websocket.Conn, id, fromUser, fromRoom, message string) 
 
 		return
 	}
+}
+
+// joinHandler handles join request.
+func (a API) joinHandler(r v1.Request) error {
+	log.Printf("\n"+"ID: '%s', Action: '%s', UserName: '%s', RoomName: '%s'", r.ID, r.Action, r.UserName, r.RoomName)
+	conErr := app.Connecter(r.ID, r.UserName, r.RoomName)
+
+	return conErr
+}
+
+// sendHandler handles send request.
+func (a API) sendHandler(r v1.Request) error {
+	log.Printf("\n"+"ID: '%s', Action: '%s', RoomName: '%s', Text: '%s'", r.ID, r.Action, r.RoomName, r.Text)
+
+	fromUser, fromRoom, message, toID, messageErr := app.Messenger(r.ID, r.RoomName, r.Text)
+	if messageErr != nil {
+		return messageErr
+	}
+
+	wgSender := new(sync.WaitGroup)
+
+	for _, id := range toID {
+		wgSender.Add(1)
+
+		go a.sender(IDSessions[id], id, fromUser, fromRoom, message)
+	}
+
+	wgSender.Wait()
+
+	return nil
+}
+
+// leaveHandler handles leave request.
+func (a API) leaveHandler(r v1.Request) error {
+	log.Printf("\n"+"ID: '%s', Action: '%s', RoomName: '%s', Text: '%s'", r.ID, r.Action, r.RoomName, r.Text)
+
+	if r.Text != "-" {
+		sendErr := a.sendHandler(r)
+		if sendErr != nil {
+			return sendErr
+		}
+	}
+
+	leaveErr := app.Leaver(r.ID, r.RoomName)
+	if leaveErr != nil {
+		return leaveErr
+	}
+
+	return nil
 }
