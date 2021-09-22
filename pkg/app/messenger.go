@@ -4,7 +4,7 @@ import "fmt"
 
 // Messenger gives server list of users in a room that have to receive message.
 func Messenger(userID, roomName, text string) (string, string, string, []string, error) {
-	if _, ok := roomList[roomName]; !ok {
+	if !RoomExists(roomName) {
 		errNoRoom := fmt.Errorf("found no room named %s", roomName)
 
 		return "", "", "", nil, errNoRoom
@@ -12,25 +12,12 @@ func Messenger(userID, roomName, text string) (string, string, string, []string,
 
 	r := roomList[roomName]
 
-	var (
-		found      bool
-		userName   string
-		returnList []string
-	)
+	var returnList []string
 
-	for currentName, currentID := range r.UserList {
-		if currentID == userID {
-			found = true
-			userName = currentName
+	userName, findErr := IDToUserName(r, userID, roomName)
 
-			break
-		}
-	}
-
-	if !found {
-		errNoUser := fmt.Errorf("no user with id %s found in room %s", userID, roomName)
-
-		return "", "", "", nil, errNoUser
+	if findErr != nil {
+		return "", "", "", nil, findErr
 	}
 
 	for _, currentID := range r.UserList {

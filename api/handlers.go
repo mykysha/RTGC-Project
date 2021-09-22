@@ -202,7 +202,7 @@ func (a API) actionHandler(r v1.Request) error {
 
 	default:
 		unknownAction := fmt.Errorf("action '%s' not supported", r.Action)
-		
+
 		return unknownAction
 	}
 }

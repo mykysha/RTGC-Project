@@ -17,7 +17,7 @@ func Connecter(id, userName, roomName string) error {
 
 	r := roomList[roomName]
 
-	if _, ok := r.UserList[userName]; ok {
+	if UserNameInRoom(r, userName) {
 		errUname := fmt.Errorf("username '%s' already exists in this room", userName)
 
 		return errUname
@@ -25,7 +25,7 @@ func Connecter(id, userName, roomName string) error {
 
 	r.UserList[userName] = id
 
-	log.Printf("\n"+"User %s connected to the room %s", userName, roomName)
+	log.Printf("\n"+"user %s connected to the room %s", userName, roomName)
 
 	return nil
 }
@@ -40,32 +40,17 @@ func NewRoom(userName, roomName string) {
 
 // Leaver deletes user from the desired room.
 func Leaver(userID, roomName string) error {
-	if _, ok := roomList[roomName]; !ok {
+	if !RoomExists(roomName) {
 		errNoRoom := fmt.Errorf("found no room named %s", roomName)
 
 		return errNoRoom
 	}
 
-	var (
-		found    bool
-		userName string
-	)
-
 	r := roomList[roomName]
 
-	for currentName, currentID := range r.UserList {
-		if currentID == userID {
-			found = true
-			userName = currentName
-
-			break
-		}
-	}
-
-	if !found {
-		errNoUser := fmt.Errorf("no user with id %s found in room %s", userID, roomName)
-
-		return errNoUser
+	userName, findErr := IDToUserName(r, userID, roomName)
+	if findErr != nil {
+		return findErr
 	}
 
 	delete(r.UserList, userName)
