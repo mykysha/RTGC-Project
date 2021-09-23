@@ -32,7 +32,7 @@ func Reader(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
 			log.Printf("\n" + "ID missmatch" + "\n")
 		}
 
-		if resp.Error {
+		if resp.IsError {
 			log.Printf("Error: %v", resp.ErrText)
 		} else {
 			log.Printf("\n" + "Completed with no errors" + "\n")

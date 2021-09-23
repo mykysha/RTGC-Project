@@ -6,7 +6,7 @@ import (
 
 type Message struct {
 	FromUserID string
-	ToChatName string
+	ToRoomName string
 	Text       string
 	Time       time.Time
 }

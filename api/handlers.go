@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/nndergunov/RTGC-Project/pkg/app"
 	"io"
 	"log"
 	"net/http"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/nndergunov/RTGC-Project/api/v1"
-	"github.com/nndergunov/RTGC-Project/pkg/app"
 )
 
 // API init.
@@ -94,7 +94,7 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
 			a.Log.Printf("reader: %v", err)
-			a.errorWriter(ws, "err", err)
+			a.responser(ws, "err", true, err)
 
 			continue
 		}
@@ -102,7 +102,7 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 		r, err := decode(msg)
 		if err != nil {
 			a.Log.Printf("decoder: %v", err)
-			a.errorWriter(ws, "err", err)
+			a.responser(ws, "err", true, err)
 
 			continue
 		}
@@ -111,47 +111,57 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 			IDSessions[r.ID] = ws
 		}
 
-		actionErr := a.actionHandler(r)
+		actionErr := a.communicator(r)
 		if actionErr != nil {
-			a.errorWriter(ws, r.ID, actionErr)
+			a.responser(ws, r.ID, true, actionErr)
 		} else {
-			a.indicator(ws, r.ID)
+			a.responser(ws, r.ID, false, nil)
 		}
 	}
 }
 
-// errorWriter sends errors to the client.
-func (a API) errorWriter(ws *websocket.Conn, id string, err error) {
-	resp := v1.Response{ID: id, Error: true, ErrText: fmt.Sprintf("%v", err)}
-
-	msg, err := encode(resp)
-	if err != nil {
-		a.Log.Printf("errorWriter: %v", err)
-
-		return
+func (a API) communicator(r v1.Request) error {
+	fromUser, fromRoom, message, toID, actionErr := app.ActionHandler(r.ID, r.Action, r.RoomName, r.UserName, r.Text)
+	if actionErr != nil {
+		return actionErr
 	}
 
-	err = ws.WriteMessage(websocket.TextMessage, msg)
-	if err != nil {
-		a.Log.Print(err)
+	wgSender := new(sync.WaitGroup)
 
-		return
+	for _, id := range toID {
+
+		wgSender.Add(1)
+
+		go a.sender(IDSessions[id], id, fromUser, fromRoom, message)
+
+		wgSender.Done()
 	}
+
+	wgSender.Wait()
+
+	return nil
 }
 
-func (a API) indicator(ws *websocket.Conn, id string) {
-	resp := v1.Response{ID: id, Error: false}
+// responser sends completion status to the client.
+func (a API) responser(ws *websocket.Conn, id string, e bool, err error) {
+	resp := v1.Response{ID: id}
+	if e {
+		resp.IsError = true
+		resp.ErrText = fmt.Sprintf("%v", err)
+	} else {
+		resp.IsError = false
+	}
 
 	msg, err := encode(resp)
 	if err != nil {
-		a.Log.Printf("indicator: %v", err)
+		a.Log.Printf("responser: %v", err)
 
 		return
 	}
 
 	err = ws.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
-		a.Log.Printf("indicator: %v", err)
+		a.Log.Printf("responser: %v", err)
 
 		return
 	}
@@ -161,7 +171,7 @@ func (a API) indicator(ws *websocket.Conn, id string) {
 func (a API) sender(ws *websocket.Conn, id, fromUser, fromRoom, message string) {
 	resp := v1.Response{
 		ID:          id,
-		Error:       false,
+		IsError:     false,
 		IsMessage:   true,
 		MessageText: message,
 		FromUser:    fromUser,
@@ -178,77 +188,5 @@ func (a API) sender(ws *websocket.Conn, id, fromUser, fromRoom, message string) 
 	err = ws.WriteMessage(websocket.TextMessage, msg)
 	if err != nil {
 		a.Log.Print(err)
-
-		return
 	}
-}
-
-func (a API) actionHandler(r v1.Request) error {
-	switch r.Action {
-	case "join":
-		joinErr := a.joinHandler(r)
-
-		return joinErr
-
-	case "send":
-		sendErr := a.sendHandler(r)
-
-		return sendErr
-
-	case "leave":
-		leaveErr := a.leaveHandler(r)
-
-		return leaveErr
-
-	default:
-		unknownAction := fmt.Errorf("action '%s' not supported", r.Action)
-
-		return unknownAction
-	}
-}
-
-// joinHandler handles join request.
-func (a API) joinHandler(r v1.Request) error {
-	log.Printf("\n"+"ID: '%s', Action: 'join', UserName: '%s', RoomName: '%s'", r.ID, r.UserName, r.RoomName)
-	conErr := app.Connecter(r.ID, r.UserName, r.RoomName)
-
-	return conErr
-}
-
-// sendHandler handles send request.
-func (a API) sendHandler(r v1.Request) error {
-	log.Printf("\n"+"ID: '%s', Action: 'send', RoomName: '%s', Text: '%s'", r.ID, r.RoomName, r.Text)
-
-	fromUser, fromRoom, message, toID, messageErr := app.Messenger(r.ID, r.RoomName, r.Text)
-	if messageErr != nil {
-		return messageErr
-	}
-
-	wgSender := new(sync.WaitGroup)
-
-	for _, id := range toID {
-		wgSender.Add(1)
-
-		go a.sender(IDSessions[id], id, fromUser, fromRoom, message)
-	}
-
-	wgSender.Wait()
-
-	return nil
-}
-
-// leaveHandler handles leave request.
-func (a API) leaveHandler(r v1.Request) error {
-	log.Printf("\n"+"ID: '%s', Action: 'leave', RoomName: '%s'", r.ID, r.RoomName)
-
-	if r.Text != "-" {
-		log.Printf("'%s' reason to leave: '%s'", r.ID, r.Text)
-	}
-
-	leaveErr := app.Leaver(r.ID, r.RoomName)
-	if leaveErr != nil {
-		return leaveErr
-	}
-
-	return nil
 }
