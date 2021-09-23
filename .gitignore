@@ -1,6 +1,6 @@
 ### Project-specific ###
-#Ignore build file
-RTGC-Project
+#Ignore build files
+bin
 
 ### Go ###
 # Binaries for programs and plugins
@@ -52,7 +52,7 @@ Temporary Items
 .apdisk
 
 ### VisualStudioCode ###
-.vscode/*
+.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json

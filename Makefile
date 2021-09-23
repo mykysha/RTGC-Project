@@ -1,23 +1,24 @@
+go-lint:
+	gofmt -l -s -w .
+	golangci-lint run --enable-all
+
 go-formatter:
-	go fmt main.go
+	gofmt -l -s -w .
 
-	go fmt github.com/nndergunov/RTGC-Project/api
-	go fmt github.com/nndergunov/RTGC-Project/api/v1
-	go fmt github.com/nndergunov/RTGC-Project/api/v1/client
-
-	go fmt github.com/nndergunov/RTGC-Project/cmd/server
-
-	go fmt github.com/nndergunov/RTGC-Project/internal/chat
-	go fmt github.com/nndergunov/RTGC-Project/internal/httpserver
+go-server:
+	go run cmd/server/main.go
 
 go-client:
-	go run api/v1/client/main.go
+	go run cmd/client/main.go
 
 go-build-mac:
-	GOOS=darwin GOARCH=amd64 go build github.com/nndergunov/RTGC-Project
+	GOOS=darwin GOARCH=amd64 go build -o bin/mac/server cmd/server/main.go
+	GOOS=darwin GOARCH=amd64 go build -o bin/mac/client cmd/client/main.go
 
 go-build-win:
-	GOOS=windows GOARCH=amd64 go build github.com/nndergunov/RTGC-Project
+	GOOS=windows GOARCH=amd64 go build -o bin/win/server.exe cmd/server/main.go
+	GOOS=windows GOARCH=amd64 go build -o bin/win/client.exe cmd/client/main.go
 
 go-build-linux:
-	GOOS=linux GOARCH=amd64 go build github.com/nndergunov/RTGC-Project
+	GOOS=linux GOARCH=amd64 go build -o bin/linux/server cmd/server/main.go
+	GOOS=linux GOARCH=amd64 go build -o bin/linux/client cmd/client/main.go
