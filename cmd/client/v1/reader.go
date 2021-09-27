@@ -14,7 +14,6 @@ func Reader(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
 
 	for {
 		_, msg, err := conn.ReadMessage()
-
 		if err != nil {
 			log.Printf("\n"+"Read err: %v"+"\n", err)
 

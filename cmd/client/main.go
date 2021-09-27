@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/gorilla/websocket"
 	"log"
 	"sync"
+
+	"github.com/gorilla/websocket"
 
 	client "github.com/nndergunov/RTGC-Project/cmd/client/v1"
 )

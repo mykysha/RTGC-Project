@@ -15,10 +15,12 @@ type Server struct {
 
 func MainServer() (mux *http.ServeMux) {
 	mux = http.NewServeMux()
+	timeout := 100 * time.Second
+
 	srv := &Server{
 		Httpserver: *newConfigServer(),
 	}
-	srv.Httpserver.Handler = http.TimeoutHandler(mux, 100*time.Second, "Timeout!\n")
+	srv.Httpserver.Handler = http.TimeoutHandler(mux, timeout, "Timeout!\n")
 
 	return mux
 }

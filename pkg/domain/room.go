@@ -1,8 +1,14 @@
 package domain
 
 import (
+	"errors"
 	"fmt"
 	"log"
+)
+
+var (
+	errID    = errors.New("user with such ID already is in the room using valid username")
+	errUname = errors.New("such username is already taken in this room")
 )
 
 type Room struct {
@@ -14,17 +20,11 @@ type Room struct {
 func (r *Room) Connecter(id, userName string) error {
 	userNameInRoom, isInErr := r.IDToUserName(id)
 	if isInErr == nil {
-		errID := fmt.Errorf("user with id '%s' "+
-			"is already connected to the room '%s' "+
-			"under the username '%s'", id, r.Name, userNameInRoom)
-
-		return errID
+		return fmt.Errorf("%w : '%v', '%v', '%v'", errID, id, r.Name, userNameInRoom)
 	}
 
 	if r.UserNameInRoom(userName) {
-		errUname := fmt.Errorf("username '%s' already exists in this room", userName)
-
-		return errUname
+		return fmt.Errorf("%w : '%v', '%v'", errUname, userName, r.Name)
 	}
 
 	r.UserList[userName] = id
@@ -49,7 +49,7 @@ func (r *Room) Leaver(userID string) (string, error) {
 
 // Messenger gives server list of users in a room that have to receive given message.
 func (r Room) Messenger(userID, roomName, text string) (string, string, string, []string, error) {
-	var returnList []string
+	returnList := make([]string, len(r.UserList)) // possible error
 
 	userName, findErr := r.IDToUserName(userID)
 

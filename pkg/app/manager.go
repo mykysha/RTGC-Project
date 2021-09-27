@@ -1,8 +1,9 @@
 package app
 
 import (
-	dom "github.com/nndergunov/RTGC-Project/pkg/domain"
 	"log"
+
+	dom "github.com/nndergunov/RTGC-Project/pkg/domain"
 )
 
 // roomList contains Room names and entities.

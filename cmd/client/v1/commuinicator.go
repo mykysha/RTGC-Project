@@ -2,6 +2,7 @@ package v1
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -9,6 +10,13 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+)
+
+// static errors.
+var (
+	errContain = errors.New("unknown command: doesn`t contain ':'")
+	errSplit   = errors.New("unknown command: wrong number of arguments")
+	errCom     = errors.New("unknown command")
 )
 
 // Communicator handles user-to-server communication.
@@ -51,16 +59,12 @@ func CL() ([]string, error) {
 	msg = strings.ReplaceAll(msg, "\n", "")
 
 	if !strings.Contains(msg, ":") {
-		err := fmt.Errorf("unknown command: doesn`t contain ':'")
-
-		return nil, err
+		return nil, errContain
 	}
 
 	m := strings.Split(msg, ":")
-	if len(m) != 3 {
-		err := fmt.Errorf("unknown command: wrong number of arguments")
-
-		return nil, err
+	if possibleCommandArguments := 3; len(m) != possibleCommandArguments {
+		return nil, errSplit
 	}
 
 	log.Printf("Sending: action - '%s', '%s', '%s'", m[0], m[1], m[2])
@@ -78,9 +82,7 @@ func WsWriter(id string, conn *websocket.Conn, m []string) error {
 	case "send", "leave":
 		r.Text = m[2]
 	default:
-		ComErr := fmt.Errorf("unknown command")
-
-		return ComErr
+		return errCom
 	}
 
 	req, err := encoder(r)

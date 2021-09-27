@@ -2,14 +2,15 @@ package api
 
 import (
 	"fmt"
-	"github.com/nndergunov/RTGC-Project/pkg/app"
 	"io"
 	"log"
 	"net/http"
 	"sync"
 
 	"github.com/gorilla/websocket"
-	"github.com/nndergunov/RTGC-Project/api/v1"
+
+	v1 "github.com/nndergunov/RTGC-Project/api/v1"
+	"github.com/nndergunov/RTGC-Project/pkg/app"
 )
 
 // API init.
@@ -53,8 +54,10 @@ func (a API) statusHandler(w http.ResponseWriter, _ *http.Request) {
 
 // /ws.
 
-var Sessions = make(map[*websocket.Conn]bool)
-var IDSessions = make(map[string]*websocket.Conn)
+var (
+	Sessions   = make(map[*websocket.Conn]bool)
+	IDSessions = make(map[string]*websocket.Conn)
+)
 
 var upgrader = websocket.Upgrader{}
 
@@ -123,13 +126,12 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 func (a API) communicator(r v1.Request) error {
 	fromUser, fromRoom, message, toID, actionErr := app.ActionHandler(r.ID, r.Action, r.RoomName, r.UserName, r.Text)
 	if actionErr != nil {
-		return actionErr
+		return fmt.Errorf("communicator: %w", actionErr)
 	}
 
 	wgSender := new(sync.WaitGroup)
 
 	for _, id := range toID {
-
 		wgSender.Add(1)
 
 		go a.sender(IDSessions[id], id, fromUser, fromRoom, message)

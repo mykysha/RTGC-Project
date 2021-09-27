@@ -1,8 +1,16 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"log"
+)
+
+// static errors.
+var (
+	errUnknownAction       = errors.New("action not supported")
+	errUnsupportedUsername = errors.New("username is not supported")
+	errNoRoom              = errors.New("no room with such name exists")
 )
 
 // ActionHandler sends request to the correct handler.
@@ -34,18 +42,14 @@ func ActionHandler(id, action, roomName, userName, text string) (string, string,
 		return sendHandler(id, roomName, text)
 
 	default:
-		unknownAction := fmt.Errorf("action '%s' not supported", action)
-
-		return "", "", "", nil, unknownAction
+		return "", "", "", nil, fmt.Errorf("%w : '%s'", errUnknownAction, action)
 	}
 }
 
 // joinHandler routes join request to the desired room.
 func joinHandler(id, userName, roomName string) error {
 	if userName == "SERVER" || userName == "ADMIN" {
-		unsupportedNameError := fmt.Errorf("username '%s' is not supported", userName)
-
-		return unsupportedNameError
+		return fmt.Errorf("%w : '%s'", errUnsupportedUsername, userName)
 	}
 
 	if _, ok := roomList[roomName]; !ok {
@@ -54,9 +58,9 @@ func joinHandler(id, userName, roomName string) error {
 
 	room := roomList[roomName]
 
-	conErr := room.Connecter(id, userName)
+	errConn := room.Connecter(id, userName)
 
-	return conErr
+	return fmt.Errorf("joinHandler: %w", errConn)
 }
 
 // leaveHandler routes leave request to the desired room.
@@ -68,9 +72,7 @@ func leaveHandler(id, roomName, text string) (string, error) {
 	}
 
 	if !RoomExists(roomName) {
-		errNoRoom := fmt.Errorf("found no room named '%s'", roomName)
-
-		return "", errNoRoom
+		return "", fmt.Errorf("%w : '%s'", errNoRoom, roomName)
 	}
 
 	room := roomList[roomName]
@@ -81,9 +83,7 @@ func leaveHandler(id, roomName, text string) (string, error) {
 // sendHandler routes send request to the desired room.
 func sendHandler(id, roomName, text string) (string, string, string, []string, error) {
 	if !RoomExists(roomName) {
-		errNoRoom := fmt.Errorf("found no room named '%s'", roomName)
-
-		return "", "", "", nil, errNoRoom
+		return "", "", "", nil, fmt.Errorf("%w : '%s'", errNoRoom, roomName)
 	}
 
 	room := roomList[roomName]
