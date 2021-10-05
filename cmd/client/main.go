@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
-
 	client "github.com/nndergunov/RTGC-Project/cmd/client/v1"
 )
 
@@ -20,7 +19,7 @@ func main() {
 	conn := client.Dialer(addr)
 
 	defer func(conn *websocket.Conn) {
-		err := conn.Close()
+		err = conn.Close()
 		if err != nil {
 			log.Fatalf("closure error: %v", err)
 		}
@@ -28,9 +27,15 @@ func main() {
 
 	wg := new(sync.WaitGroup)
 
-	wg.Add(2)
+	activeGoRoutines := 2
+	wg.Add(activeGoRoutines)
 
-	go client.Reader(id, conn, wg)
+	go func() {
+		err = client.Reader(id, conn, wg)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 	go client.Communicator(id, conn, wg)
 
 	wg.Wait()

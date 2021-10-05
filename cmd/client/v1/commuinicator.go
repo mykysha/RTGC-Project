@@ -14,7 +14,7 @@ import (
 
 // static errors.
 var (
-	errContain = errors.New("unknown command: doesn`t contain ':'")
+	errContain = errors.New("unknown command: does not contain ':'")
 	errSplit   = errors.New("unknown command: wrong number of arguments")
 	errCom     = errors.New("unknown command")
 )
@@ -22,14 +22,6 @@ var (
 // Communicator handles user-to-server communication.
 func Communicator(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
 	defer wg.Done()
-
-	fmt.Printf("\n" + "Possible commands:" +
-		"\n\t" + "'join:ROOMNAME:USERNAME'" +
-		"\n\t\t" + "(if no room with such name exists, it will be created)" +
-		"\n\n\t" + "'send:ROOMNAME:TEXT'" +
-		"\n\n\t" + "'leave:ROOMNAME:TEXT'" +
-		"\n\t\t" + "(if you don't want to write reason why you leave just type '-')" +
-		"\n\t\t" + "(possible reasons: spam\ttoxic community\ttoo many ads\tetc.)")
 
 	for {
 		req, err := CL()
@@ -50,11 +42,33 @@ func Communicator(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
 
 // CL gets commands from user via Command Line.
 func CL() ([]string, error) {
+	writer := bufio.NewWriter(os.Stdout)
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Printf("\n" + "Write command here ->\t")
+	_, err := writer.WriteString("\n" + "Possible commands:" +
+		"\n\t" + "'join:ROOMNAME:USERNAME'" +
+		"\n\t\t" + "(if no room with such name exists, it will be created)" +
+		"\n\n\t" + "'send:ROOMNAME:TEXT'" +
+		"\n\n\t" + "'leave:ROOMNAME:TEXT'" +
+		"\n\t\t" + "(if you don't want to write reason why you leave just type '-')" +
+		"\n\t\t" + "(possible reasons: spam\ttoxic community\ttoo many ads\tetc.)" + "\n")
+	if err != nil {
+		return nil, fmt.Errorf("write to CL: %w", err)
+	}
 
-	msg, _ := reader.ReadString('\n')
+	_, err = writer.WriteString("\n" + "Write command here ->" + "\t")
+	if err != nil {
+		return nil, fmt.Errorf("write to CL: %w", err)
+	}
+
+	if err = writer.Flush(); err != nil {
+		return nil, fmt.Errorf("write to CL: %w", err)
+	}
+
+	msg, err := reader.ReadString('\n')
+	if err != nil {
+		return nil, fmt.Errorf("read from CL: %w", err)
+	}
 
 	msg = strings.ReplaceAll(msg, "\n", "")
 
@@ -74,29 +88,37 @@ func CL() ([]string, error) {
 
 // WsWriter sends requests to an open ws-connection.
 func WsWriter(id string, conn *websocket.Conn, m []string) error {
-	r := Request{ID: id, Action: m[0], RoomName: m[1]}
+	r := Request{
+		ID:       id,
+		Action:   m[0],
+		RoomName: m[1],
+		UserName: "",
+		Text:     "",
+	}
 
 	switch r.Action {
 	case "join":
 		r.UserName = m[2]
+
 	case "send", "leave":
 		r.Text = m[2]
+
 	default:
 		return errCom
 	}
 
 	req, err := encoder(r)
 	if err != nil {
-		ConvErr := fmt.Errorf("converting: %w", err)
+		err = fmt.Errorf("converting: %w", err)
 
-		return ConvErr
+		return err
 	}
 
 	err = conn.WriteMessage(websocket.TextMessage, req)
 	if err != nil {
-		WrErr := fmt.Errorf("writing: %w", err)
+		err = fmt.Errorf("writing: %w", err)
 
-		return WrErr
+		return err
 	}
 
 	return nil

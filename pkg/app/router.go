@@ -17,10 +17,9 @@ var (
 func ActionHandler(id, action, roomName, userName, text string) (string, string, string, []string, error) {
 	switch action {
 	case "join":
-		joinErr := joinHandler(id, userName, roomName)
-
-		if joinErr != nil {
-			return "", "", "", nil, joinErr
+		err := joinHandler(id, userName, roomName)
+		if err != nil {
+			return "", "", "", nil, err
 		}
 
 		joinMessage := fmt.Sprintf("user '%s' joined the room '%s'", userName, roomName)
@@ -28,10 +27,9 @@ func ActionHandler(id, action, roomName, userName, text string) (string, string,
 		return ActionHandler("SERVER", "send", roomName, "SERVER", joinMessage)
 
 	case "leave":
-		userName, leaveErr := leaveHandler(id, roomName, text)
-
-		if leaveErr != nil {
-			return "", "", "", nil, leaveErr
+		userName, err := leaveHandler(id, roomName, text)
+		if err != nil {
+			return "", "", "", nil, err
 		}
 
 		leaveMessage := fmt.Sprintf("user '%s' left the room '%s'", userName, roomName)
@@ -58,9 +56,12 @@ func joinHandler(id, userName, roomName string) error {
 
 	room := roomList[roomName]
 
-	errConn := room.Connecter(id, userName)
+	err := room.Connecter(id, userName)
+	if err != nil {
+		return fmt.Errorf("joinHandler: %w", err)
+	}
 
-	return fmt.Errorf("joinHandler: %w", errConn)
+	return nil
 }
 
 // leaveHandler routes leave request to the desired room.
@@ -77,7 +78,12 @@ func leaveHandler(id, roomName, text string) (string, error) {
 
 	room := roomList[roomName]
 
-	return room.Leaver(id)
+	uName, err := room.Leaver(id)
+	if err != nil {
+		err = fmt.Errorf("leaveHandler: %w", err)
+	}
+
+	return uName, err
 }
 
 // sendHandler routes send request to the desired room.
@@ -88,5 +94,12 @@ func sendHandler(id, roomName, text string) (string, string, string, []string, e
 
 	room := roomList[roomName]
 
-	return room.Messenger(id, roomName, text)
+	fromUser, fromRoom, message, toID, err := room.Messenger(id, roomName, text)
+	if err != nil {
+		err = fmt.Errorf("send: %w", err)
+
+		return "", "", "", nil, err
+	}
+
+	return fromUser, fromRoom, message, toID, nil
 }

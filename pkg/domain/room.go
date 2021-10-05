@@ -18,8 +18,8 @@ type Room struct {
 
 // Connecter adds the user to the desired room.
 func (r *Room) Connecter(id, userName string) error {
-	userNameInRoom, isInErr := r.IDToUserName(id)
-	if isInErr == nil {
+	userNameInRoom, err := r.IDToUserName(id)
+	if err == nil {
 		return fmt.Errorf("%w : '%v', '%v', '%v'", errID, id, r.Name, userNameInRoom)
 	}
 
@@ -36,9 +36,9 @@ func (r *Room) Connecter(id, userName string) error {
 
 // Leaver deletes user from the desired room.
 func (r *Room) Leaver(userID string) (string, error) {
-	userName, findErr := r.IDToUserName(userID)
-	if findErr != nil {
-		return "", findErr
+	userName, err := r.IDToUserName(userID)
+	if err != nil {
+		return "", err
 	}
 
 	delete(r.UserList, userName)
@@ -49,12 +49,11 @@ func (r *Room) Leaver(userID string) (string, error) {
 
 // Messenger gives server list of users in a room that have to receive given message.
 func (r Room) Messenger(userID, roomName, text string) (string, string, string, []string, error) {
-	returnList := make([]string, len(r.UserList)) // possible error
+	returnList := make([]string, 0) // possible error
 
-	userName, findErr := r.IDToUserName(userID)
-
-	if findErr != nil {
-		return "", "", "", nil, findErr
+	userName, err := r.IDToUserName(userID)
+	if err != nil {
+		return "", "", "", nil, err
 	}
 
 	for _, currentID := range r.UserList {

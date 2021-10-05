@@ -15,10 +15,18 @@ func newConfigServer() *http.Server {
 
 	srv := http.Server{
 		Addr:              ":8080",
+		Handler:           nil,
+		TLSConfig:         nil,
 		ReadTimeout:       readTime,
+		ReadHeaderTimeout: readerHeaderTime,
 		WriteTimeout:      writeTime,
 		IdleTimeout:       idleTime,
-		ReadHeaderTimeout: readerHeaderTime,
+		MaxHeaderBytes:    0,
+		TLSNextProto:      nil,
+		ConnState:         nil,
+		ErrorLog:          nil,
+		BaseContext:       nil,
+		ConnContext:       nil,
 	}
 
 	return &srv

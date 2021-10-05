@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 type Request struct {
@@ -26,6 +27,8 @@ type Response struct {
 func encoder(r Request) ([]byte, error) {
 	data, err := json.Marshal(r)
 	if err != nil {
+		err = fmt.Errorf("encode: %w", err)
+
 		return nil, err
 	}
 
@@ -38,6 +41,8 @@ func decoder(msg []byte) (*Response, error) {
 
 	err := json.Unmarshal(msg, &resp)
 	if err != nil {
+		err = fmt.Errorf("decode: %w", err)
+
 		return nil, err
 	}
 

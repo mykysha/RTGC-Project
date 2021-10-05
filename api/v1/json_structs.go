@@ -16,7 +16,6 @@ type Response struct {
 	MessageText string `json:"messageText,omitempty"`
 	FromUser    string `json:"fromUserId,omitempty"`
 	FromRoom    string `json:"fromRoom,omitempty"`
-	Time        string `json:"sendTime"`
 }
 
 type State struct {

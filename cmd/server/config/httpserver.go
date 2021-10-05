@@ -13,9 +13,11 @@ type Server struct {
 	Httpserver http.Server
 }
 
-func MainServer() (mux *http.ServeMux) {
-	mux = http.NewServeMux()
-	timeout := 100 * time.Second
+func MainServer() *http.ServeMux {
+	var (
+		mux     = http.NewServeMux()
+		timeout = 10 * time.Second
+	)
 
 	srv := &Server{
 		Httpserver: *newConfigServer(),
@@ -32,6 +34,7 @@ func New() http.Handler {
 		Mux: mux,
 		Log: logger,
 	}
+
 	a.Init()
 
 	return a
