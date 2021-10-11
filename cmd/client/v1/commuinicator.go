@@ -20,6 +20,21 @@ var (
 func (c Client) Communicator(wg *sync.WaitGroup) {
 	defer wg.Done()
 
+	_, err := c.Writer.WriteString("\n" + "Possible commands:" +
+		"\n\t" + "'join:ROOMNAME:USERNAME'" +
+		"\n\t\t" + "(if no room with such name exists, it will be created)" +
+		"\n\n\t" + "'send:ROOMNAME:TEXT'" +
+		"\n\n\t" + "'leave:ROOMNAME:TEXT'" +
+		"\n\t\t" + "(if you don't want to write reason why you leave just type '-')" +
+		"\n\t\t" + "(possible reasons: spam\ttoxic community\ttoo many ads\tetc.)" + "\n")
+	if err != nil {
+		c.Log.Printf("write to CL: %v", err)
+	}
+
+	if err = c.Writer.Flush(); err != nil {
+		c.Log.Printf("write to CL: %v", err)
+	}
+
 	for {
 		req, err := c.CL()
 		if err != nil {
@@ -39,18 +54,7 @@ func (c Client) Communicator(wg *sync.WaitGroup) {
 
 // CL gets commands from user via Command Line.
 func (c Client) CL() ([]string, error) {
-	_, err := c.Writer.WriteString("\n" + "Possible commands:" +
-		"\n\t" + "'join:ROOMNAME:USERNAME'" +
-		"\n\t\t" + "(if no room with such name exists, it will be created)" +
-		"\n\n\t" + "'send:ROOMNAME:TEXT'" +
-		"\n\n\t" + "'leave:ROOMNAME:TEXT'" +
-		"\n\t\t" + "(if you don't want to write reason why you leave just type '-')" +
-		"\n\t\t" + "(possible reasons: spam\ttoxic community\ttoo many ads\tetc.)" + "\n")
-	if err != nil {
-		return nil, fmt.Errorf("write to CL: %w", err)
-	}
-
-	_, err = c.Writer.WriteString("\n" + "Write command in command line:" + "\n")
+	_, err := c.Writer.WriteString("\n" + "Write command in command line:" + "\n")
 	if err != nil {
 		return nil, fmt.Errorf("write to CL: %w", err)
 	}
