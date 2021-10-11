@@ -15,9 +15,10 @@ import (
 // API init.
 
 type API struct {
-	Mux      *http.ServeMux
-	Log      *log.Logger
-	sessions session
+	Mux           *http.ServeMux
+	Log           *log.Logger
+	sessions      session
+	requestRouter *app.Router
 }
 
 type session struct {
@@ -30,6 +31,10 @@ func (a *API) Init() {
 		sessionStatus: make(map[*websocket.Conn]bool),
 		idToSession:   make(map[string]*websocket.Conn),
 	}
+
+	a.requestRouter = &app.Router{}
+
+	a.requestRouter.Init()
 
 	a.Mux.HandleFunc("/v1/status", a.statusHandler)
 	a.Mux.HandleFunc("/v1/ws", a.wsHandler)
@@ -134,7 +139,7 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 }
 
 func (a API) communicator(r v1.Request) error {
-	fromUser, fromRoom, message, toID, err := app.ActionHandler(r.ID, r.Action, r.RoomName, r.UserName, r.Text)
+	fromUser, fromRoom, message, toID, err := a.requestRouter.ActionHandler(r.ID, r.Action, r.RoomName, r.UserName, r.Text)
 	if err != nil {
 		return fmt.Errorf("communicator: %w", err)
 	}

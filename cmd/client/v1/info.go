@@ -1,32 +1,27 @@
 package v1
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strings"
 )
 
 // GetInfo receives user information.
-func GetInfo() (string, error) {
-	writer := bufio.NewWriter(os.Stdout)
-	reader := bufio.NewReader(os.Stdin)
-
-	_, err := writer.WriteString("Please enter your 'ID'\n")
+func (c *Client) GetInfo() error {
+	_, err := c.Writer.WriteString("Please enter your 'ID'\n")
 	if err != nil {
-		return "", fmt.Errorf("write to CL: %w", err)
+		return fmt.Errorf("write to CL: %w", err)
 	}
 
-	if err = writer.Flush(); err != nil {
-		return "", fmt.Errorf("write to CL: %w", err)
+	if err = c.Writer.Flush(); err != nil {
+		return fmt.Errorf("write to CL: %w", err)
 	}
 
-	id, err := reader.ReadString('\n')
+	id, err := c.Reader.ReadString('\n')
 	if err != nil {
-		return "", fmt.Errorf("read from CL: %w", err)
+		return fmt.Errorf("read from CL: %w", err)
 	}
 
-	id = strings.ReplaceAll(id, "\n", "")
+	c.id = strings.ReplaceAll(id, "\n", "")
 
-	return id, nil
+	return nil
 }

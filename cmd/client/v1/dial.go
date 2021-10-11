@@ -1,19 +1,21 @@
 package v1
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/gorilla/websocket"
 )
 
 // Dialer dials to websocket connection on server.
-func Dialer(addr string) *websocket.Conn {
-	conn, _, err := websocket.DefaultDialer.Dial(addr, nil)
+func (c *Client) Dialer() error {
+	conn, _, err := websocket.DefaultDialer.Dial(c.Addr, nil)
 	if err != nil {
-		log.Fatal("\n"+"connection error:", err)
+		return fmt.Errorf("dial: %w", err)
 	}
 
-	log.Printf("\n"+"connected to '%s'"+"\n", addr)
+	c.conn = conn
 
-	return conn
+	c.Log.Printf("connected to '%s'", c.Addr)
+
+	return nil
 }

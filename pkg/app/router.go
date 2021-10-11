@@ -14,30 +14,30 @@ var (
 )
 
 // ActionHandler sends request to the correct handler.
-func ActionHandler(id, action, roomName, userName, text string) (string, string, string, []string, error) {
+func (r Router) ActionHandler(id, action, roomName, userName, text string) (string, string, string, []string, error) {
 	switch action {
 	case "join":
-		err := joinHandler(id, userName, roomName)
+		err := r.joinHandler(id, userName, roomName)
 		if err != nil {
 			return "", "", "", nil, err
 		}
 
 		joinMessage := fmt.Sprintf("user '%s' joined the room '%s'", userName, roomName)
 
-		return ActionHandler("SERVER", "send", roomName, "SERVER", joinMessage)
+		return r.ActionHandler("SERVER", "send", roomName, "SERVER", joinMessage)
 
 	case "leave":
-		userName, err := leaveHandler(id, roomName, text)
+		userName, err := r.leaveHandler(id, roomName, text)
 		if err != nil {
 			return "", "", "", nil, err
 		}
 
 		leaveMessage := fmt.Sprintf("user '%s' left the room '%s'", userName, roomName)
 
-		return ActionHandler("SERVER", "send", roomName, "SERVER", leaveMessage)
+		return r.ActionHandler("SERVER", "send", roomName, "SERVER", leaveMessage)
 
 	case "send":
-		return sendHandler(id, roomName, text)
+		return r.sendHandler(id, roomName, text)
 
 	default:
 		return "", "", "", nil, fmt.Errorf("%w : '%s'", errUnknownAction, action)
@@ -45,16 +45,16 @@ func ActionHandler(id, action, roomName, userName, text string) (string, string,
 }
 
 // joinHandler routes join request to the desired room.
-func joinHandler(id, userName, roomName string) error {
+func (r Router) joinHandler(id, userName, roomName string) error {
 	if userName == "SERVER" || userName == "ADMIN" {
 		return fmt.Errorf("%w : '%s'", errUnsupportedUsername, userName)
 	}
 
-	if _, ok := roomList[roomName]; !ok {
-		NewRoom(userName, roomName)
+	if !r.RoomExists(roomName) {
+		r.NewRoom(userName, roomName)
 	}
 
-	room := roomList[roomName]
+	room := r.roomList[roomName]
 
 	err := room.Connecter(id, userName)
 	if err != nil {
@@ -65,18 +65,18 @@ func joinHandler(id, userName, roomName string) error {
 }
 
 // leaveHandler routes leave request to the desired room.
-func leaveHandler(id, roomName, text string) (string, error) {
-	log.Printf("\n"+"ID: '%s', Action: 'leave', RoomName: '%s'", id, roomName)
+func (r Router) leaveHandler(id, roomName, text string) (string, error) {
+	log.Printf("ID: '%s', Action: 'leave', RoomName: '%s'", id, roomName)
 
 	if text != "-" {
 		log.Printf("'%s' reason to leave: '%s'", id, text)
 	}
 
-	if !RoomExists(roomName) {
+	if !r.RoomExists(roomName) {
 		return "", fmt.Errorf("%w : '%s'", errNoRoom, roomName)
 	}
 
-	room := roomList[roomName]
+	room := r.roomList[roomName]
 
 	uName, err := room.Leaver(id)
 	if err != nil {
@@ -87,19 +87,19 @@ func leaveHandler(id, roomName, text string) (string, error) {
 }
 
 // sendHandler routes send request to the desired room.
-func sendHandler(id, roomName, text string) (string, string, string, []string, error) {
-	if !RoomExists(roomName) {
+func (r Router) sendHandler(id, roomName, text string) (string, string, string, []string, error) {
+	if !r.RoomExists(roomName) {
 		return "", "", "", nil, fmt.Errorf("%w : '%s'", errNoRoom, roomName)
 	}
 
-	room := roomList[roomName]
+	room := r.roomList[roomName]
 
-	fromUser, fromRoom, message, toID, err := room.Messenger(id, roomName, text)
+	m, err := room.Messenger(id, roomName, text)
 	if err != nil {
 		err = fmt.Errorf("send: %w", err)
 
 		return "", "", "", nil, err
 	}
 
-	return fromUser, fromRoom, message, toID, nil
+	return m.FromUserID, m.ToRoomName, m.Text, m.ToID, nil
 }

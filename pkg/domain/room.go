@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 )
 
 var (
@@ -29,7 +30,7 @@ func (r *Room) Connecter(id, userName string) error {
 
 	r.UserList[userName] = id
 
-	log.Printf("\n"+"user '%s' connected to the room '%s'", userName, r.Name)
+	log.Printf("user '%s' connected to the room '%s'", userName, r.Name)
 
 	return nil
 }
@@ -42,27 +43,35 @@ func (r *Room) Leaver(userID string) (string, error) {
 	}
 
 	delete(r.UserList, userName)
-	log.Printf("\n"+"user '%s' disconnected from the room '%s'", userName, r.Name)
+	log.Printf("user '%s' disconnected from the room '%s'", userName, r.Name)
 
 	return userName, nil
 }
 
 // Messenger gives server list of users in a room that have to receive given message.
-func (r Room) Messenger(userID, roomName, text string) (string, string, string, []string, error) {
-	returnList := make([]string, 0) // possible error
+func (r Room) Messenger(userID, roomName, text string) (Message, error) {
+	m := Message{
+		FromUserID: "",
+		ToRoomName: roomName,
+		ToID:       nil,
+		Text:       text,
+		Time:       time.Time{},
+	}
 
 	userName, err := r.IDToUserName(userID)
 	if err != nil {
-		return "", "", "", nil, err
+		return m, err
 	}
+
+	m.FromUserID = userName
 
 	for _, currentID := range r.UserList {
 		if currentID == "SERVER" {
 			continue
 		}
 
-		returnList = append(returnList, currentID)
+		m.ToID = append(m.ToID, currentID)
 	}
 
-	return userName, roomName, text, returnList, nil
+	return m, nil
 }

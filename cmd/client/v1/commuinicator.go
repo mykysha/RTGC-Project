@@ -1,11 +1,8 @@
 package v1
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
-	"log"
-	"os"
 	"strings"
 	"sync"
 
@@ -20,20 +17,20 @@ var (
 )
 
 // Communicator handles user-to-server communication.
-func Communicator(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
+func (c Client) Communicator(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	for {
-		req, err := CL()
+		req, err := c.CL()
 		if err != nil {
-			log.Printf("\n"+"Request error: %v"+"\n", err)
+			c.Log.Printf("Request error: %v", err)
 
 			continue
 		}
 
-		err = WsWriter(id, conn, req)
+		err = c.WsWriter(req)
 		if err != nil {
-			log.Printf("\n"+"Writing error: %v"+"\n", err)
+			c.Log.Printf("Writing error: %v", err)
 
 			continue
 		}
@@ -41,11 +38,8 @@ func Communicator(id string, conn *websocket.Conn, wg *sync.WaitGroup) {
 }
 
 // CL gets commands from user via Command Line.
-func CL() ([]string, error) {
-	writer := bufio.NewWriter(os.Stdout)
-	reader := bufio.NewReader(os.Stdin)
-
-	_, err := writer.WriteString("\n" + "Possible commands:" +
+func (c Client) CL() ([]string, error) {
+	_, err := c.Writer.WriteString("\n" + "Possible commands:" +
 		"\n\t" + "'join:ROOMNAME:USERNAME'" +
 		"\n\t\t" + "(if no room with such name exists, it will be created)" +
 		"\n\n\t" + "'send:ROOMNAME:TEXT'" +
@@ -56,16 +50,16 @@ func CL() ([]string, error) {
 		return nil, fmt.Errorf("write to CL: %w", err)
 	}
 
-	_, err = writer.WriteString("\n" + "Write command here ->" + "\t")
+	_, err = c.Writer.WriteString("\n" + "Write command in command line:" + "\n")
 	if err != nil {
 		return nil, fmt.Errorf("write to CL: %w", err)
 	}
 
-	if err = writer.Flush(); err != nil {
+	if err = c.Writer.Flush(); err != nil {
 		return nil, fmt.Errorf("write to CL: %w", err)
 	}
 
-	msg, err := reader.ReadString('\n')
+	msg, err := c.Reader.ReadString('\n')
 	if err != nil {
 		return nil, fmt.Errorf("read from CL: %w", err)
 	}
@@ -81,15 +75,15 @@ func CL() ([]string, error) {
 		return nil, errSplit
 	}
 
-	log.Printf("Sending: action - '%s', '%s', '%s'", m[0], m[1], m[2])
+	c.Log.Printf("Sending: action - '%s', '%s', '%s'", m[0], m[1], m[2])
 
 	return m, nil
 }
 
 // WsWriter sends requests to an open ws-connection.
-func WsWriter(id string, conn *websocket.Conn, m []string) error {
+func (c Client) WsWriter(m []string) error {
 	r := Request{
-		ID:       id,
+		ID:       c.id,
 		Action:   m[0],
 		RoomName: m[1],
 		UserName: "",
@@ -114,7 +108,7 @@ func WsWriter(id string, conn *websocket.Conn, m []string) error {
 		return err
 	}
 
-	err = conn.WriteMessage(websocket.TextMessage, req)
+	err = c.conn.WriteMessage(websocket.TextMessage, req)
 	if err != nil {
 		err = fmt.Errorf("writing: %w", err)
 
