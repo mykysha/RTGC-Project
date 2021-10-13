@@ -3,7 +3,10 @@ go-lint:
 	golangci-lint run --enable-all
 
 go-formatter:
-	gofmt -l -s -w .
+	gofumpt -l -s -w .
+
+go-gci:
+	gci -local "github.com/nndergunov" -w .
 
 go-server:
 	go run cmd/server/main.go

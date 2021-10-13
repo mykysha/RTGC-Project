@@ -2,17 +2,15 @@ package api
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 
-	"github.com/nndergunov/RTGC-Project/api/v1"
+	v1 "github.com/nndergunov/RTGC-Project/api/v1"
 )
 
 func encode(r v1.Response) ([]byte, error) {
 	data, err := json.Marshal(r)
 	if err != nil {
-		log.Println(err)
-
-		return nil, err
+		return nil, fmt.Errorf("encode: %w", err)
 	}
 
 	return data, nil
@@ -23,20 +21,16 @@ func decode(msg []byte) (v1.Request, error) {
 
 	err := json.Unmarshal(msg, &req)
 	if err != nil {
-		log.Println(err)
-
-		return req, err
+		return req, fmt.Errorf("decode: %w", err)
 	}
 
 	return req, nil
 }
 
-func statusEncoder(s v1.Status) ([]byte, error) {
+func statusEncoder(s v1.State) ([]byte, error) {
 	data, err := json.Marshal(s)
 	if err != nil {
-		log.Println(err)
-
-		return nil, err
+		return nil, fmt.Errorf("statusEncoder: %w", err)
 	}
 
 	return data, nil

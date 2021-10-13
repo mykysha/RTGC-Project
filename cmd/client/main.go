@@ -1,26 +1,22 @@
 package main
 
 import (
-	"sync"
+	"bufio"
+	"log"
+	"os"
 
-	client "github.com/nndergunov/RTGC-Project/cmd/client/v1"
+	v1 "github.com/nndergunov/RTGC-Project/cmd/client/app"
 )
 
-const addr = "ws://localhost:8080/v1/ws"
+const addr = "ws://localhost:8080/app/ws"
 
 func main() {
-	id := client.GetInfo()
+	w := bufio.NewWriter(os.Stdout)
+	r := bufio.NewReader(os.Stdin)
 
-	conn := client.Dial(addr)
-	defer conn.Close()
+	l := log.New(os.Stdout, "client ", log.LstdFlags)
 
-	wg := new(sync.WaitGroup)
-	done := make(chan bool)
+	c := v1.Client{}
 
-	wg.Add(2)
-
-	go client.Reader(id, conn, wg, done)
-	go client.Writer(id, conn, wg, done)
-
-	wg.Wait()
+	c.Init(addr, l, w, r)
 }
