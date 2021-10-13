@@ -5,23 +5,18 @@ import (
 	"log"
 	"os"
 
-	v1 "github.com/nndergunov/RTGC-Project/cmd/client/v1"
+	v1 "github.com/nndergunov/RTGC-Project/cmd/client/app"
 )
 
-const addr = "ws://localhost:8080/v1/ws"
+const addr = "ws://localhost:8080/app/ws"
 
 func main() {
-	writer := bufio.NewWriter(os.Stdout)
-	reader := bufio.NewReader(os.Stdin)
+	w := bufio.NewWriter(os.Stdout)
+	r := bufio.NewReader(os.Stdin)
 
-	logger := log.New(os.Stdout, "client ", log.LstdFlags)
+	l := log.New(os.Stdout, "client ", log.LstdFlags)
 
-	c := v1.Client{
-		Addr:   addr,
-		Log:    logger,
-		Writer: writer,
-		Reader: reader,
-	}
+	c := v1.Client{}
 
-	c.Init()
+	c.Init(addr, l, w, r)
 }

@@ -10,7 +10,7 @@ var (
 	errNoUser = errors.New("no user with such id found in a room")
 )
 
-func (r Room) UserNameInRoom(userName string) bool {
+func (r Room) userNameInRoom(userName string) bool {
 	if _, ok := r.UserList[userName]; ok {
 		return true
 	}
@@ -18,24 +18,16 @@ func (r Room) UserNameInRoom(userName string) bool {
 	return false
 }
 
-func (r Room) IDToUserName(userID string) (string, error) {
-	var (
-		found    bool
-		userName string
-	)
+func (r Room) idToUserName(userID string) (string, error) {
+	var userName string
 
 	for currentName, currentID := range r.UserList {
 		if currentID == userID {
-			found = true
 			userName = currentName
 
-			break
+			return userName, nil
 		}
 	}
 
-	if !found {
-		return "", fmt.Errorf("%w : '%s', '%s'", errNoUser, userID, r.Name)
-	}
-
-	return userName, nil
+	return "", fmt.Errorf("%w : '%s', '%s'", errNoUser, userID, r.Name)
 }

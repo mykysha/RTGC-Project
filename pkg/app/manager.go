@@ -14,8 +14,8 @@ func (r *Router) Init() {
 	r.roomList = make(map[string]*dom.Room)
 }
 
-// NewRoom creates new room.
-func (r *Router) NewRoom(userName, roomName string) {
+// newRoom creates new room.
+func (r *Router) newRoom(userName, roomName string) {
 	nr := dom.Room{Name: roomName, UserList: make(map[string]string)}
 	r.roomList[roomName] = &nr
 	nr.UserList["SERVER"] = "SERVER"
@@ -23,7 +23,7 @@ func (r *Router) NewRoom(userName, roomName string) {
 	log.Printf("user '%s' created new room '%s'", userName, roomName)
 }
 
-func (r Router) RoomExists(roomName string) bool {
+func (r Router) roomExists(roomName string) bool {
 	if _, ok := r.roomList[roomName]; ok {
 		return true
 	}

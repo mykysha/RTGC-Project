@@ -1,4 +1,4 @@
-package v1
+package app
 
 import (
 	"fmt"
@@ -12,34 +12,34 @@ func (c Client) infoReader(wg *sync.WaitGroup) {
 	for {
 		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
-			c.Log.Printf("reader: %v", err)
+			c.log.Printf("reader: %v", err)
 		}
 
 		resp, err := decoder(msg)
 		if err != nil {
-			c.Log.Printf("reader: %v", err)
+			c.log.Printf("reader: %v", err)
 		}
 
 		if resp.ID != c.id {
-			c.Log.Printf("ID mismatch")
+			c.log.Printf("ID mismatch")
 		}
 
 		if resp.IsError {
-			c.Log.Printf("Error: %v", resp.ErrText)
+			c.log.Printf("Error: %v", resp.ErrText)
 		} else {
-			c.Log.Printf("Done")
+			c.log.Printf("Done")
 		}
 
 		if resp.IsMessage {
 			message := fmt.Sprintf("\n"+"%s : %s - %s"+"\n", resp.FromRoom, resp.FromUser, resp.MessageText)
 
-			_, err = c.Writer.WriteString(message)
+			_, err = c.writer.WriteString(message)
 			if err != nil {
-				c.Log.Printf("write to CL: %v", err)
+				c.log.Printf("write to readCommand: %v", err)
 			}
 
-			if err = c.Writer.Flush(); err != nil {
-				c.Log.Printf("write to CL: %v", err)
+			if err = c.writer.Flush(); err != nil {
+				c.log.Printf("write to readCommand: %v", err)
 			}
 		}
 	}

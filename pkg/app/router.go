@@ -50,8 +50,8 @@ func (r Router) joinHandler(id, userName, roomName string) error {
 		return fmt.Errorf("%w : '%s'", errUnsupportedUsername, userName)
 	}
 
-	if !r.RoomExists(roomName) {
-		r.NewRoom(userName, roomName)
+	if !r.roomExists(roomName) {
+		r.newRoom(userName, roomName)
 	}
 
 	room := r.roomList[roomName]
@@ -66,13 +66,11 @@ func (r Router) joinHandler(id, userName, roomName string) error {
 
 // leaveHandler routes leave request to the desired room.
 func (r Router) leaveHandler(id, roomName, text string) (string, error) {
-	log.Printf("ID: '%s', Action: 'leave', RoomName: '%s'", id, roomName)
-
 	if text != "-" {
-		log.Printf("'%s' reason to leave: '%s'", id, text)
+		log.Printf("'%s' reason to leave from '%s': '%s'", id, roomName, text)
 	}
 
-	if !r.RoomExists(roomName) {
+	if !r.roomExists(roomName) {
 		return "", fmt.Errorf("%w : '%s'", errNoRoom, roomName)
 	}
 
@@ -88,7 +86,7 @@ func (r Router) leaveHandler(id, roomName, text string) (string, error) {
 
 // sendHandler routes send request to the desired room.
 func (r Router) sendHandler(id, roomName, text string) (string, string, string, []string, error) {
-	if !r.RoomExists(roomName) {
+	if !r.roomExists(roomName) {
 		return "", "", "", nil, fmt.Errorf("%w : '%s'", errNoRoom, roomName)
 	}
 

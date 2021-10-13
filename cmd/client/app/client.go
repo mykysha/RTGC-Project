@@ -1,4 +1,4 @@
-package v1
+package app
 
 import (
 	"bufio"
@@ -9,23 +9,28 @@ import (
 )
 
 type Client struct {
-	Addr   string
+	addr   string
 	id     string
-	Log    *log.Logger
+	log    *log.Logger
 	conn   *websocket.Conn
-	Writer *bufio.Writer
-	Reader *bufio.Reader
+	writer *bufio.Writer
+	reader *bufio.Reader
 }
 
-func (c *Client) Init() {
-	err := c.GetInfo()
+func (c *Client) Init(a string, l *log.Logger, w *bufio.Writer, r *bufio.Reader) {
+	c.addr = a
+	c.log = l
+	c.writer = w
+	c.reader = r
+
+	err := c.getInfo()
 	if err != nil {
 		log.Fatalf("userinfo error: %v", err)
 	}
 
-	err = c.Dialer()
+	err = c.dialer()
 	if err != nil {
-		c.Log.Fatalln(err)
+		c.log.Fatalln(err)
 	}
 
 	defer func() {
@@ -42,7 +47,7 @@ func (c *Client) Init() {
 
 	go c.infoReader(wg)
 
-	go c.Communicator(wg)
+	go c.communicator(wg)
 
 	wg.Wait()
 }

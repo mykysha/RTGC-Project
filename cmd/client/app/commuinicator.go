@@ -1,4 +1,4 @@
-package v1
+package app
 
 import (
 	"errors"
@@ -16,11 +16,11 @@ var (
 	errCom     = errors.New("unknown command")
 )
 
-// Communicator handles user-to-server communication.
-func (c Client) Communicator(wg *sync.WaitGroup) {
+// communicator handles user-to-server communication.
+func (c Client) communicator(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	_, err := c.Writer.WriteString("\n" + "Possible commands:" +
+	_, err := c.writer.WriteString("\n" + "Possible commands:" +
 		"\n\t" + "'join:ROOMNAME:USERNAME'" +
 		"\n\t\t" + "(if no room with such name exists, it will be created)" +
 		"\n\n\t" + "'send:ROOMNAME:TEXT'" +
@@ -28,44 +28,44 @@ func (c Client) Communicator(wg *sync.WaitGroup) {
 		"\n\t\t" + "(if you don't want to write reason why you leave just type '-')" +
 		"\n\t\t" + "(possible reasons: spam\ttoxic community\ttoo many ads\tetc.)" + "\n")
 	if err != nil {
-		c.Log.Printf("write to CL: %v", err)
+		c.log.Printf("write to readCommand: %v", err)
 	}
 
-	if err = c.Writer.Flush(); err != nil {
-		c.Log.Printf("write to CL: %v", err)
+	if err = c.writer.Flush(); err != nil {
+		c.log.Printf("write to readCommand: %v", err)
 	}
 
 	for {
-		req, err := c.CL()
+		req, err := c.readCommand()
 		if err != nil {
-			c.Log.Printf("Request error: %v", err)
+			c.log.Printf("Request error: %v", err)
 
 			continue
 		}
 
-		err = c.WsWriter(req)
+		err = c.wsWriter(req)
 		if err != nil {
-			c.Log.Printf("Writing error: %v", err)
+			c.log.Printf("Writing error: %v", err)
 
 			continue
 		}
 	}
 }
 
-// CL gets commands from user via Command Line.
-func (c Client) CL() ([]string, error) {
-	_, err := c.Writer.WriteString("\n" + "Write command in command line:" + "\n")
+// readCommand gets commands from user via Command Line.
+func (c Client) readCommand() ([]string, error) {
+	_, err := c.writer.WriteString("\n" + "Write command in command line:" + "\n")
 	if err != nil {
-		return nil, fmt.Errorf("write to CL: %w", err)
+		return nil, fmt.Errorf("write to readCommand: %w", err)
 	}
 
-	if err = c.Writer.Flush(); err != nil {
-		return nil, fmt.Errorf("write to CL: %w", err)
+	if err = c.writer.Flush(); err != nil {
+		return nil, fmt.Errorf("write to readCommand: %w", err)
 	}
 
-	msg, err := c.Reader.ReadString('\n')
+	msg, err := c.reader.ReadString('\n')
 	if err != nil {
-		return nil, fmt.Errorf("read from CL: %w", err)
+		return nil, fmt.Errorf("read from readCommand: %w", err)
 	}
 
 	msg = strings.ReplaceAll(msg, "\n", "")
@@ -79,13 +79,13 @@ func (c Client) CL() ([]string, error) {
 		return nil, errSplit
 	}
 
-	c.Log.Printf("Sending: action - '%s', '%s', '%s'", m[0], m[1], m[2])
+	c.log.Printf("Sending: action - '%s', '%s', '%s'", m[0], m[1], m[2])
 
 	return m, nil
 }
 
-// WsWriter sends requests to an open ws-connection.
-func (c Client) WsWriter(m []string) error {
+// wsWriter sends requests to an open ws-connection.
+func (c Client) wsWriter(m []string) error {
 	r := Request{
 		ID:       c.id,
 		Action:   m[0],
@@ -97,10 +97,8 @@ func (c Client) WsWriter(m []string) error {
 	switch r.Action {
 	case "join":
 		r.UserName = m[2]
-
 	case "send", "leave":
 		r.Text = m[2]
-
 	default:
 		return errCom
 	}

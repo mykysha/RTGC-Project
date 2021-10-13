@@ -19,12 +19,12 @@ type Room struct {
 
 // Connecter adds the user to the desired room.
 func (r *Room) Connecter(id, userName string) error {
-	userNameInRoom, err := r.IDToUserName(id)
+	userNameInRoom, err := r.idToUserName(id)
 	if err == nil {
 		return fmt.Errorf("%w : '%v', '%v', '%v'", errID, id, r.Name, userNameInRoom)
 	}
 
-	if r.UserNameInRoom(userName) {
+	if r.userNameInRoom(userName) {
 		return fmt.Errorf("%w : '%v', '%v'", errUname, userName, r.Name)
 	}
 
@@ -37,7 +37,7 @@ func (r *Room) Connecter(id, userName string) error {
 
 // Leaver deletes user from the desired room.
 func (r *Room) Leaver(userID string) (string, error) {
-	userName, err := r.IDToUserName(userID)
+	userName, err := r.idToUserName(userID)
 	if err != nil {
 		return "", err
 	}
@@ -58,7 +58,7 @@ func (r Room) Messenger(userID, roomName, text string) (Message, error) {
 		Time:       time.Time{},
 	}
 
-	userName, err := r.IDToUserName(userID)
+	userName, err := r.idToUserName(userID)
 	if err != nil {
 		return m, err
 	}
