@@ -14,6 +14,9 @@ go-server:
 go-client:
 	go run cmd/client/main.go
 
+go-clearDB:
+	go run pkg/db/clearDB/main.go
+
 go-build-mac:
 	GOOS=darwin GOARCH=amd64 go build -o bin/mac/server cmd/server/main.go
 	GOOS=darwin GOARCH=amd64 go build -o bin/mac/client cmd/client/main.go

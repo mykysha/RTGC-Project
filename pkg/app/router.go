@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -45,7 +46,7 @@ func (r Router) ActionHandler(id, action, roomName, userName, text string) (stri
 }
 
 // joinHandler routes join request to the desired room.
-func (r Router) joinHandler(id, userName, roomName string) error {
+func (r Router) joinHandler(userID, userName, roomName string) error {
 	if userName == "SERVER" || userName == "ADMIN" {
 		return fmt.Errorf("%w : '%s'", errUnsupportedUsername, userName)
 	}
@@ -59,18 +60,25 @@ func (r Router) joinHandler(id, userName, roomName string) error {
 
 	room := r.roomList[roomName]
 
-	err := room.Connecter(id, userName)
+	err := room.Connecter(userID, userName)
 	if err != nil {
 		return fmt.Errorf("joinHandler: %w", err)
 	}
+
+	id, err := r.usersInRoomTable.CreateUsersInRoom(context.Background(), r.roomNameToID[roomName], userID, userName)
+	if err != nil {
+		return fmt.Errorf("db write: %w", err)
+	}
+
+	room.UserIDToRowID[userID] = id
 
 	return nil
 }
 
 // leaveHandler routes leave request to the desired room.
-func (r Router) leaveHandler(id, roomName, text string) (string, error) {
+func (r Router) leaveHandler(userID, roomName, text string) (string, error) {
 	if text != "-" {
-		log.Printf("'%s' reason to leave from '%s': '%s'", id, roomName, text)
+		log.Printf("'%s' reason to leave from '%s': '%s'", userID, roomName, text)
 	}
 
 	if !r.roomExists(roomName) {
@@ -79,9 +87,14 @@ func (r Router) leaveHandler(id, roomName, text string) (string, error) {
 
 	room := r.roomList[roomName]
 
-	uName, err := room.Leaver(id)
+	uName, err := room.Leaver(userID)
 	if err != nil {
-		err = fmt.Errorf("leaveHandler: %w", err)
+		return "", fmt.Errorf("leaveHandler: %w", err)
+	}
+
+	err = r.usersInRoomTable.DeleteUsersInRoom(context.Background(), room.UserIDToRowID[userID])
+	if err != nil {
+		err = fmt.Errorf("delete from db: %w", err)
 	}
 
 	return uName, err

@@ -76,7 +76,11 @@ func (r *Router) fetchRooms() error {
 
 	for _, val := range roomListDB {
 		if !r.roomExists(*val.Name) {
-			nr := dom.Room{Name: *val.Name, UserList: make(map[string]string)}
+			nr := dom.Room{
+				Name:          *val.Name,
+				UserList:      make(map[string]string),
+				UserIDToRowID: make(map[string]int),
+			}
 			r.roomList[*val.Name] = &nr
 			nr.UserList[SERVER] = SERVER
 
@@ -134,11 +138,15 @@ func (r *Router) fetchUsers() error {
 
 // newRoom creates new room.
 func (r *Router) newRoom(userName, roomName string) error {
-	nr := dom.Room{Name: roomName, UserList: make(map[string]string)}
+	nr := dom.Room{
+		Name:          roomName,
+		UserList:      make(map[string]string),
+		UserIDToRowID: make(map[string]int),
+	}
 	r.roomList[roomName] = &nr
 	nr.UserList[SERVER] = SERVER
 
-	id, err := r.roomsTable.CreateRooms(context.Background(), "roomMoore")
+	id, err := r.roomsTable.CreateRooms(context.Background(), roomName)
 	if err != nil {
 		return fmt.Errorf("database write: %w", err)
 	}

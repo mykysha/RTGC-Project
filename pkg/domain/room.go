@@ -13,8 +13,9 @@ var (
 )
 
 type Room struct {
-	Name     string
-	UserList map[string]string // username - id
+	Name          string
+	UserList      map[string]string // username - userid
+	UserIDToRowID map[string]int    // userid - database row id
 }
 
 // Connecter adds the user to the desired room.
