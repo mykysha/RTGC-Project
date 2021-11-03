@@ -30,7 +30,7 @@ func (r *Room) Connecter(id, userName string) error {
 
 	r.UserList[userName] = id
 
-	log.Printf("user '%s' connected to the room '%s'", userName, r.Name)
+	log.Printf("user '%s' connected to the room '%s' (id '%s')", userName, r.Name, id)
 
 	return nil
 }

@@ -51,7 +51,10 @@ func (r Router) joinHandler(id, userName, roomName string) error {
 	}
 
 	if !r.roomExists(roomName) {
-		r.newRoom(userName, roomName)
+		err := r.newRoom(userName, roomName)
+		if err != nil {
+			return fmt.Errorf("join: %w", err)
+		}
 	}
 
 	room := r.roomList[roomName]

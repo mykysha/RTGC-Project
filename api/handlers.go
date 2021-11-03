@@ -132,7 +132,7 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 
 		if _, ok := a.sessions.idToSession[r.ID]; !ok {
 			a.sessions.idToSession[r.ID] = ws
-		}
+		} // TODO id registration process. (Known issue: user when read from DB should send request to register ID before he can receive messages)
 
 		err = a.communicator(r)
 		if err != nil {
@@ -150,6 +150,10 @@ func (a API) communicator(r v1.Request) error {
 	wgSender := new(sync.WaitGroup)
 
 	for _, id := range toID {
+		if _, ok := a.sessions.idToSession[id]; !ok {
+			continue
+		}
+
 		wgSender.Add(1)
 
 		go a.sender(a.sessions.idToSession[id], id, fromUser, fromRoom, message)
