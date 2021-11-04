@@ -3,15 +3,9 @@ package repository
 import (
 	"context"
 
+	db "github.com/nndergunov/RTGC-Project/pkg/db/internal/rtgc/public"
 	"github.com/nndergunov/RTGC-Project/pkg/db/internal/rtgc/public/model"
 )
-
-type UsersInRoomCriteria struct {
-	ID       *int
-	RoomID   *int
-	UserID   *string
-	Username *string
-}
 
 type UsersInRoomRepository interface {
 	CreateUsersInRoom(ctx context.Context, roomID int, userName, userID string) (id int, err error)
@@ -19,5 +13,7 @@ type UsersInRoomRepository interface {
 	UpdateUsersInRoom(ctx context.Context, room *model.Usersinroom) error
 	DeleteUsersInRoom(ctx context.Context, id int) error
 
-	ListUsersInRoom(ctx context.Context, list *ListOptions, criteria *UsersInRoomCriteria) ([]*model.Usersinroom, error)
+	ListUsersInRoom(
+		ctx context.Context,
+		list *db.ListOptions, criteria *db.UsersInRoomCriteria) ([]*model.Usersinroom, error)
 }

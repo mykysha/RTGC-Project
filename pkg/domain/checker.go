@@ -1,13 +1,7 @@
 package domain
 
 import (
-	"errors"
 	"fmt"
-)
-
-// static errors.
-var (
-	errNoUser = errors.New("no user with such id found in a room")
 )
 
 func (r Room) userNameInRoom(userName string) bool {
