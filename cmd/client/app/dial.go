@@ -17,5 +17,12 @@ func (c *Client) dialer() error {
 
 	c.log.Printf("connected to '%s'", c.addr)
 
+	registration := []string{"register", "", ""}
+
+	err = c.wsWriter(registration)
+	if err != nil {
+		return fmt.Errorf("register: %w", err)
+	}
+
 	return nil
 }

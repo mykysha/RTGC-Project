@@ -132,7 +132,7 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 
 		if _, ok := a.sessions.idToSession[r.ID]; !ok {
 			a.sessions.idToSession[r.ID] = ws
-		} // TODO id registration process. (Known issue: user when read from DB should send request to register ID before he can receive messages)
+		}
 
 		err = a.communicator(r)
 		if err != nil {

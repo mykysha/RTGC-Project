@@ -22,6 +22,9 @@ func (r *Router) Init() {
 // ActionHandler sends request to the correct handler.
 func (r *Router) ActionHandler(id, action, roomName, userName, text string) (string, string, string, []string, error) {
 	switch action {
+	case "register":
+		return "", "", "", nil, nil
+
 	case "join":
 		err := r.roomList.Join(id, userName, roomName)
 		if err != nil {

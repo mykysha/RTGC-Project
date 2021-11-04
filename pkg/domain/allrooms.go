@@ -130,7 +130,7 @@ func (a AllRooms) findRoomByID(id int) (string, bool) {
 // Join connects user to the desired room.
 func (a *AllRooms) Join(userID, userName, roomName string) error {
 	if userName == "SERVER" || userName == "ADMIN" {
-		return fmt.Errorf("%w : '%s'", errUnsupportedUsername, userName)
+		return fmt.Errorf("%w: '%s'", errUnsupportedUsername, userName)
 	}
 
 	if !a.roomExists(roomName) {
@@ -164,7 +164,7 @@ func (a *AllRooms) Leave(userID, roomName, text string) (string, error) {
 	}
 
 	if !a.roomExists(roomName) {
-		return "", fmt.Errorf("%w : '%s'", errNoRoom, roomName)
+		return "", fmt.Errorf("%w: '%s'", errNoRoom, roomName)
 	}
 
 	room := a.rooms[roomName]
@@ -185,7 +185,7 @@ func (a *AllRooms) Leave(userID, roomName, text string) (string, error) {
 // Send delivers message to the desired room.
 func (a AllRooms) Send(id, roomName, text string) (*Message, error) {
 	if !a.roomExists(roomName) {
-		return nil, fmt.Errorf("%w : '%s'", errNoRoom, roomName)
+		return nil, fmt.Errorf("%w: '%s'", errNoRoom, roomName)
 	}
 
 	room := a.rooms[roomName]
