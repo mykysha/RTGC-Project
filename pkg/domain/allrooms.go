@@ -197,5 +197,5 @@ func (a AllRooms) Send(id, roomName, text string) (*Message, error) {
 		return nil, err
 	}
 
-	return &m, nil
+	return m, nil
 }

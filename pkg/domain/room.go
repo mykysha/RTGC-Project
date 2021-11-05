@@ -44,21 +44,21 @@ func (r *Room) Leaver(userID string) (string, error) {
 }
 
 // Messenger gives server list of users in a room that have to receive given message.
-func (r Room) Messenger(userID, roomName, text string) (Message, error) {
+func (r Room) Messenger(userID, roomName, text string) (*Message, error) {
 	m := Message{
-		FromUserID: "",
-		ToRoomName: roomName,
-		ToID:       nil,
-		Text:       text,
-		Time:       time.Time{},
+		FromUserName: "",
+		ToRoomName:   roomName,
+		ToID:         nil,
+		Text:         text,
+		Time:         time.Time{},
 	}
 
 	userName, err := r.idToUserName(userID)
 	if err != nil {
-		return m, err
+		return nil, err
 	}
 
-	m.FromUserID = userName
+	m.FromUserName = userName
 
 	for _, currentID := range r.UserList {
 		if currentID == "SERVER" {
@@ -68,5 +68,5 @@ func (r Room) Messenger(userID, roomName, text string) (Message, error) {
 		m.ToID = append(m.ToID, currentID)
 	}
 
-	return m, nil
+	return &m, nil
 }

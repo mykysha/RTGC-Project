@@ -1,4 +1,4 @@
-package roomrepository
+package room
 
 import (
 	pg "github.com/go-jet/jet/v2/postgres"

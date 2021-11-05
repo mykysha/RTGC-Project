@@ -1,4 +1,4 @@
-package usersrepository
+package user
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	_ "github.com/lib/pq"
 	db "github.com/nndergunov/RTGC-Project/pkg/db/internal/rtgc/public"
 	"github.com/nndergunov/RTGC-Project/pkg/db/internal/rtgc/public/model"
-	repo "github.com/nndergunov/RTGC-Project/pkg/db/usersrepository/repository"
+	repo "github.com/nndergunov/RTGC-Project/pkg/db/repository/user/usersrepository"
 )
 
 // usersinroom repository.

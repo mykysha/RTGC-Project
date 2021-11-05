@@ -10,8 +10,8 @@ import (
 	"github.com/joho/godotenv"
 	generaldb "github.com/nndergunov/RTGC-Project/pkg/db/internal/rtgc/public"
 	"github.com/nndergunov/RTGC-Project/pkg/db/internal/rtgc/public/model"
-	rrep "github.com/nndergunov/RTGC-Project/pkg/db/roomrepository"
-	urep "github.com/nndergunov/RTGC-Project/pkg/db/usersrepository"
+	rrep "github.com/nndergunov/RTGC-Project/pkg/db/repository/room"
+	urep "github.com/nndergunov/RTGC-Project/pkg/db/repository/user"
 )
 
 type Database struct {

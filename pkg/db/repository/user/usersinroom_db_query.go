@@ -1,4 +1,4 @@
-package usersrepository
+package user
 
 import (
 	pg "github.com/go-jet/jet/v2/postgres"
