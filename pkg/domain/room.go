@@ -9,7 +9,7 @@ import (
 type Room struct {
 	Name          string
 	UserList      map[string]string // username - userid
-	UserIDToRowID map[string]int    // userid - database row id
+	UserIDToRowID map[string]int    // userid - database row userID
 }
 
 // Connecter adds the user to the desired room.
@@ -25,7 +25,7 @@ func (r *Room) Connecter(id, userName string) error {
 
 	r.UserList[userName] = id
 
-	log.Printf("user '%s' connected to the room '%s' (id '%s')", userName, r.Name, id)
+	log.Printf("user '%s' connected to the room '%s' (userID '%s')", userName, r.Name, id)
 
 	return nil
 }
@@ -46,7 +46,7 @@ func (r *Room) Leaver(userID string) (string, error) {
 // Messenger gives server list of users in a room that have to receive given message.
 func (r Room) Messenger(userID, roomName, text string) (Message, error) {
 	m := Message{
-		FromUserID: "",
+		FromUser:   "",
 		ToRoomName: roomName,
 		ToID:       nil,
 		Text:       text,
@@ -58,7 +58,7 @@ func (r Room) Messenger(userID, roomName, text string) (Message, error) {
 		return m, err
 	}
 
-	m.FromUserID = userName
+	m.FromUser = userName
 
 	for _, currentID := range r.UserList {
 		if currentID == "SERVER" {

@@ -51,7 +51,7 @@ func (r *Router) ActionHandler(id, action, roomName, userName, text string) (str
 			return "", "", "", nil, fmt.Errorf("send handler: %w", err)
 		}
 
-		return msg.FromUserID, msg.ToRoomName, msg.Text, msg.ToID, nil
+		return msg.FromUser, msg.ToRoomName, msg.Text, msg.ToID, nil
 
 	default:
 		return "", "", "", nil, fmt.Errorf("%w : '%s'", errUnknownAction, action)

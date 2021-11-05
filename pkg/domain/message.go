@@ -5,7 +5,7 @@ import (
 )
 
 type Message struct {
-	FromUserID string
+	FromUser   string
 	ToRoomName string
 	ToID       []string
 	Text       string
