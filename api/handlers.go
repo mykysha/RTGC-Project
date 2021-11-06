@@ -156,9 +156,7 @@ func (a API) communicator(r v1.Request) error {
 
 		wgSender.Add(1)
 
-		go a.sender(a.sessions.idToSession[id], id, msg.FromUserName, msg.ToRoomName, msg.Text)
-
-		wgSender.Done()
+		go a.sender(a.sessions.idToSession[id], id, msg.FromUserName, msg.ToRoomName, msg.Text, wgSender)
 	}
 
 	wgSender.Wait()
@@ -194,7 +192,9 @@ func (a API) errorHandler(ws *websocket.Conn, id string, e bool, err error) {
 }
 
 // sender sends message to desired user.
-func (a API) sender(ws *websocket.Conn, id, fromUser, fromRoom, message string) {
+func (a API) sender(ws *websocket.Conn, id, fromUser, fromRoom, message string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	resp := v1.Response{
 		IsError:     false,
 		IsMessage:   true,
