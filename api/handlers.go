@@ -149,6 +149,10 @@ func (a API) communicator(r v1.Request) error {
 
 	wgSender := new(sync.WaitGroup)
 
+	if msg == nil {
+		return nil
+	}
+
 	for _, id := range msg.ToID {
 		if _, ok := a.sessions.idToSession[id]; !ok {
 			continue

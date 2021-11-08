@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	allroomsservice "github.com/nndergunov/RTGC-Project/pkg/app/allrooms"
 	"github.com/nndergunov/RTGC-Project/pkg/domain"
 )
 
@@ -11,11 +12,11 @@ import (
 var errUnknownAction = errors.New("action not supported")
 
 type Router struct {
-	roomList *domain.AllRooms
+	roomList *allroomsservice.AllRooms
 }
 
 func (r *Router) Init() {
-	r.roomList = &domain.AllRooms{}
+	r.roomList = &allroomsservice.AllRooms{}
 	r.roomList.Init()
 }
 

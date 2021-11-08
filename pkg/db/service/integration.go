@@ -16,8 +16,8 @@ import (
 
 type Database struct {
 	db               *sql.DB
-	roomsTable       *rrep.RoomsRepository
-	usersInRoomTable *urep.UsersInRoomRepository
+	roomsTable       *rrep.Rooms
+	usersInRoomTable *urep.UsersInRoom
 }
 
 func (d *Database) Init() {
