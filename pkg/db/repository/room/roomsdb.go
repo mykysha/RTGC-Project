@@ -1,4 +1,4 @@
-package roomrepository
+package room
 
 import (
 	"context"
@@ -11,20 +11,19 @@ import (
 	_ "github.com/lib/pq"
 	db "github.com/nndergunov/RTGC-Project/pkg/db/internal/rtgc/public"
 	"github.com/nndergunov/RTGC-Project/pkg/db/internal/rtgc/public/model"
-	repo "github.com/nndergunov/RTGC-Project/pkg/db/roomrepository/repository"
 )
 
 // rooms repository.
 
-func NewRoomsRepository(db db.SQLHandler) *RoomsRepository {
-	return &RoomsRepository{db}
+func NewRoomsRepository(db db.SQLHandler) *Rooms {
+	return &Rooms{db}
 }
 
-type RoomsRepository struct {
+type Rooms struct {
 	db db.SQLHandler
 }
 
-func (r *RoomsRepository) CreateRooms(ctx context.Context, name string) (id int, err error) {
+func (r *Rooms) CreateRooms(ctx context.Context, name string) (id int, err error) {
 	stmt := createRoomsQuery(name)
 	query, args := stmt.Sql()
 
@@ -38,7 +37,7 @@ func (r *RoomsRepository) CreateRooms(ctx context.Context, name string) (id int,
 	return
 }
 
-func (r *RoomsRepository) ReadRooms(ctx context.Context, id int) (*model.Rooms, error) {
+func (r *Rooms) ReadRooms(ctx context.Context, id int) (*model.Rooms, error) {
 	stmt := readRoomsQuery(id)
 	query, args := stmt.Sql()
 	row := r.db.QueryRowContext(ctx, query, args...)
@@ -60,7 +59,7 @@ func (r *RoomsRepository) ReadRooms(ctx context.Context, id int) (*model.Rooms, 
 	return rooms, nil
 }
 
-func (r RoomsRepository) UpdateRooms(ctx context.Context, room *model.Rooms) error {
+func (r Rooms) UpdateRooms(ctx context.Context, room *model.Rooms) error {
 	stmt := updateRoomsQuery(room)
 	query, args := stmt.Sql()
 	_, err := r.db.ExecContext(ctx, query, args...)
@@ -76,7 +75,7 @@ func (r RoomsRepository) UpdateRooms(ctx context.Context, room *model.Rooms) err
 	return nil
 }
 
-func (r RoomsRepository) DeleteRooms(ctx context.Context, id int) error {
+func (r Rooms) DeleteRooms(ctx context.Context, id int) error {
 	stmt := deleteRoomQuery(id)
 	query, args := stmt.Sql()
 	_, err := r.db.ExecContext(ctx, query, args...)
@@ -92,7 +91,7 @@ func (r RoomsRepository) DeleteRooms(ctx context.Context, id int) error {
 	return nil
 }
 
-func (r *RoomsRepository) ListRooms(
+func (r *Rooms) ListRooms(
 	ctx context.Context,
 	list *db.ListOptions,
 	crit *db.RoomsCriteria) ([]*model.Rooms, error) {
@@ -137,4 +136,4 @@ func (r *RoomsRepository) ListRooms(
 	return res, nil
 }
 
-var _ repo.RoomsRepository = (*RoomsRepository)(nil)
+var _ RoomsRepository = (*Rooms)(nil)

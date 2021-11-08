@@ -1,22 +1,25 @@
-package domain
+package allroomsservice
 
 import (
 	"fmt"
 	"log"
 
+	roomservice "github.com/nndergunov/RTGC-Project/pkg/app/room"
 	database "github.com/nndergunov/RTGC-Project/pkg/db/service"
+	"github.com/nndergunov/RTGC-Project/pkg/domain"
 )
 
-const SERVER = "SERVER"
+// ServerUserName exists as a user in every room.
+const ServerUserName = "SERVER"
 
 type AllRooms struct {
-	rooms        map[string]*Room
+	rooms        map[string]*roomservice.RoomService
 	roomNameToID map[string]int
 	db           *database.Database
 }
 
 func (a *AllRooms) Init() {
-	a.rooms = make(map[string]*Room)
+	a.rooms = make(map[string]*roomservice.RoomService)
 	a.roomNameToID = make(map[string]int)
 
 	a.db = &database.Database{}
@@ -42,13 +45,15 @@ func (a *AllRooms) fetchRooms() error {
 
 	for _, val := range rooms {
 		if !a.roomExists(*val.Name) {
-			nr := Room{
-				Name:          *val.Name,
+			nr := roomservice.RoomService{
+				Room: &domain.Room{
+					Name: *val.Name,
+				},
 				UserList:      make(map[string]string),
 				UserIDToRowID: make(map[string]int),
 			}
 			a.rooms[*val.Name] = &nr
-			nr.UserList[SERVER] = SERVER
+			nr.UserList[ServerUserName] = ServerUserName
 
 			a.roomNameToID[*val.Name] = int(val.ID)
 
@@ -74,9 +79,9 @@ func (a *AllRooms) fetchUsers() error {
 			continue
 		}
 
-		room := a.rooms[roomName]
+		newRoom := a.rooms[roomName]
 
-		err := room.Connecter(*val.Userid, *val.Username)
+		err := newRoom.Connecter(*val.Userid, *val.Username)
 		if err != nil {
 			return fmt.Errorf("joinHandler: %w", err)
 		}
@@ -89,13 +94,15 @@ func (a *AllRooms) fetchUsers() error {
 
 // newRoom creates new room.
 func (a *AllRooms) newRoom(userName, roomName string) error {
-	nr := Room{
-		Name:          roomName,
+	nr := roomservice.RoomService{
+		Room: &domain.Room{
+			Name: roomName,
+		},
 		UserList:      make(map[string]string),
 		UserIDToRowID: make(map[string]int),
 	}
 	a.rooms[roomName] = &nr
-	nr.UserList[SERVER] = SERVER
+	nr.UserList[ServerUserName] = ServerUserName
 
 	id, err := a.db.AddRoom(roomName)
 	if err != nil {
@@ -140,9 +147,9 @@ func (a *AllRooms) Join(userID, userName, roomName string) error {
 		}
 	}
 
-	room := a.rooms[roomName]
+	newRoom := a.rooms[roomName]
 
-	err := room.Connecter(userID, userName)
+	err := newRoom.Connecter(userID, userName)
 	if err != nil {
 		return fmt.Errorf("joinHandler: %w", err)
 	}
@@ -152,7 +159,7 @@ func (a *AllRooms) Join(userID, userName, roomName string) error {
 		return fmt.Errorf("database add: %w", err)
 	}
 
-	room.UserIDToRowID[userID] = id
+	newRoom.UserIDToRowID[userID] = id
 
 	return nil
 }
@@ -167,14 +174,14 @@ func (a *AllRooms) Leave(userID, roomName, text string) (string, error) {
 		return "", fmt.Errorf("%w: '%s'", errNoRoom, roomName)
 	}
 
-	room := a.rooms[roomName]
+	newRoom := a.rooms[roomName]
 
-	uName, err := room.Leaver(userID)
+	uName, err := newRoom.Leaver(userID)
 	if err != nil {
 		return "", fmt.Errorf("leaveHandler: %w", err)
 	}
 
-	err = a.db.DelUser(room.UserIDToRowID[userID])
+	err = a.db.DelUser(newRoom.UserIDToRowID[userID])
 	if err != nil {
 		err = fmt.Errorf("database: %w", err)
 	}
@@ -183,19 +190,19 @@ func (a *AllRooms) Leave(userID, roomName, text string) (string, error) {
 }
 
 // Send delivers message to the desired room.
-func (a AllRooms) Send(id, roomName, text string) (*Message, error) {
+func (a AllRooms) Send(id, roomName, text string) (*domain.Message, error) {
 	if !a.roomExists(roomName) {
 		return nil, fmt.Errorf("%w: '%s'", errNoRoom, roomName)
 	}
 
-	room := a.rooms[roomName]
+	newRoom := a.rooms[roomName]
 
-	m, err := room.Messenger(id, roomName, text)
+	m, err := newRoom.Messenger(id, roomName, text)
 	if err != nil {
 		err = fmt.Errorf("send: %w", err)
 
 		return nil, err
 	}
 
-	return &m, nil
+	return m, nil
 }

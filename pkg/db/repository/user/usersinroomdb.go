@@ -1,4 +1,4 @@
-package usersrepository
+package user
 
 import (
 	"context"
@@ -11,20 +11,19 @@ import (
 	_ "github.com/lib/pq"
 	db "github.com/nndergunov/RTGC-Project/pkg/db/internal/rtgc/public"
 	"github.com/nndergunov/RTGC-Project/pkg/db/internal/rtgc/public/model"
-	repo "github.com/nndergunov/RTGC-Project/pkg/db/usersrepository/repository"
 )
 
 // usersinroom repository.
 
-func NewUsersInRoomRepository(db db.SQLHandler) *UsersInRoomRepository {
-	return &UsersInRoomRepository{db}
+func NewUsersInRoomRepository(db db.SQLHandler) *UsersInRoom {
+	return &UsersInRoom{db}
 }
 
-type UsersInRoomRepository struct {
+type UsersInRoom struct {
 	db db.SQLHandler
 }
 
-func (u *UsersInRoomRepository) CreateUsersInRoom(
+func (u *UsersInRoom) CreateUsersInRoom(
 	ctx context.Context,
 	rID int, userID,
 	userName string) (id int, err error) {
@@ -48,7 +47,7 @@ func (u *UsersInRoomRepository) CreateUsersInRoom(
 	return
 }
 
-func (u *UsersInRoomRepository) ReadUsersInRoom(ctx context.Context, id int) (*model.Usersinroom, error) {
+func (u *UsersInRoom) ReadUsersInRoom(ctx context.Context, id int) (*model.Usersinroom, error) {
 	stmt := readUsersInRoomQuery(id)
 	query, args := stmt.Sql()
 	row := u.db.QueryRowContext(ctx, query, args...)
@@ -76,7 +75,7 @@ func (u *UsersInRoomRepository) ReadUsersInRoom(ctx context.Context, id int) (*m
 	return users, nil
 }
 
-func (u UsersInRoomRepository) UpdateUsersInRoom(ctx context.Context, user *model.Usersinroom) error {
+func (u UsersInRoom) UpdateUsersInRoom(ctx context.Context, user *model.Usersinroom) error {
 	stmt := updateUsersInRoomQuery(user)
 	query, args := stmt.Sql()
 	_, err := u.db.ExecContext(ctx, query, args...)
@@ -92,7 +91,7 @@ func (u UsersInRoomRepository) UpdateUsersInRoom(ctx context.Context, user *mode
 	return nil
 }
 
-func (u UsersInRoomRepository) DeleteUsersInRoom(ctx context.Context, id int) error {
+func (u UsersInRoom) DeleteUsersInRoom(ctx context.Context, id int) error {
 	stmt := deleteUsersInRoomQuery(id)
 	query, args := stmt.Sql()
 	_, err := u.db.ExecContext(ctx, query, args...)
@@ -108,7 +107,7 @@ func (u UsersInRoomRepository) DeleteUsersInRoom(ctx context.Context, id int) er
 	return nil
 }
 
-func (u *UsersInRoomRepository) ListUsersInRoom(
+func (u *UsersInRoom) ListUsersInRoom(
 	ctx context.Context,
 	list *db.ListOptions,
 	crit *db.UsersInRoomCriteria) ([]*model.Usersinroom, error) {
@@ -157,4 +156,4 @@ func (u *UsersInRoomRepository) ListUsersInRoom(
 	return res, nil
 }
 
-var _ repo.UsersInRoomRepository = (*UsersInRoomRepository)(nil)
+var _ UsersInRoomRepository = (*UsersInRoom)(nil)
