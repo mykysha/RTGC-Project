@@ -20,8 +20,10 @@ type Database struct {
 	usersInRoomTable *urep.UsersInRoomRepository
 }
 
+const envFile = "db.env"
+
 func (d *Database) Init() {
-	if err := godotenv.Load("db.env"); err != nil {
+	if err := godotenv.Load(envFile); err != nil {
 		log.Printf("env file read: %v", err)
 	}
 

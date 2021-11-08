@@ -10,6 +10,10 @@ import (
 )
 
 // Warning! Make sure that there are no entities in the database that are used in the test.
+// Entities used in the test:
+// id 		-	testID1
+// username	-	testName1
+// roomname	-	testRoom1
 
 type Client struct {
 	addr string
