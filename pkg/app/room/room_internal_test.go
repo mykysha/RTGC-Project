@@ -1,9 +1,11 @@
-package domain
+package roomservice
 
 import (
 	"errors"
 	"fmt"
 	"testing"
+
+	"github.com/nndergunov/RTGC-Project/pkg/domain"
 )
 
 func TestRoom_Connecter(t *testing.T) {
@@ -52,8 +54,10 @@ func TestRoom_Connecter(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			t.Parallel()
 
-			r := Room{
-				Name:          tt.room,
+			r := RoomService{
+				Room: &domain.Room{
+					Name: tt.room,
+				},
 				UserList:      make(map[string]string),
 				UserIDToRowID: make(map[string]int),
 			}
@@ -106,8 +110,10 @@ func TestRoom_Leaver(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			t.Parallel()
 
-			r := Room{
-				Name:          tt.room,
+			r := RoomService{
+				Room: &domain.Room{
+					Name: tt.room,
+				},
 				UserList:      make(map[string]string),
 				UserIDToRowID: make(map[string]int),
 			}
@@ -163,8 +169,10 @@ func TestRoom_Messenger(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			t.Parallel()
 
-			r := Room{
-				Name:          tt.room,
+			r := RoomService{
+				Room: &domain.Room{
+					Name: tt.room,
+				},
 				UserList:      make(map[string]string),
 				UserIDToRowID: make(map[string]int),
 			}

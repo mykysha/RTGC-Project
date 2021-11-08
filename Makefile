@@ -14,6 +14,15 @@ go-server:
 go-client:
 	go run cmd/client/main.go
 
+go-unit-test:
+	go test pkg/app/room/room_internal_test.go -v
+
+go-integration-test:
+	go test pkg/db/integration_test.go -v
+
+go_e2e-test:
+	go test tests/e2eserver_test.go -v
+
 go-clearDB:
 	go run pkg/db/clear/main.go
 
