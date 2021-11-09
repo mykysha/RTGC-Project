@@ -136,7 +136,7 @@ func (a AllRooms) findRoomByID(id int) (string, bool) {
 
 // Join connects user to the desired room.
 func (a *AllRooms) Join(userID, userName, roomName string) error {
-	if userName == SERVER || userName == "ADMIN" {
+	if userName == ServerUserName || userName == "ADMIN" {
 		return fmt.Errorf("%w: '%s'", errUnsupportedUsername, userName)
 	}
 
