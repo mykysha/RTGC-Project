@@ -54,7 +54,7 @@ func TestRoom_Connecter(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			t.Parallel()
 
-			r := RoomService{
+			r := Room{
 				Room: &domain.Room{
 					Name: tt.room,
 				},
@@ -110,7 +110,7 @@ func TestRoom_Leaver(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			t.Parallel()
 
-			r := RoomService{
+			r := Room{
 				Room: &domain.Room{
 					Name: tt.room,
 				},
@@ -169,7 +169,7 @@ func TestRoom_Messenger(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			t.Parallel()
 
-			r := RoomService{
+			r := Room{
 				Room: &domain.Room{
 					Name: tt.room,
 				},

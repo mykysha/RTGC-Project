@@ -1,9 +1,14 @@
 package db_test
 
 import (
+	"fmt"
+	"log"
+	"os"
 	"testing"
 
-	database "github.com/nndergunov/RTGC-Project/pkg/db/service"
+	"github.com/joho/godotenv"
+
+	dbservice "github.com/nndergunov/RTGC-Project/pkg/db/service"
 )
 
 // Warning! Use with an empty database!
@@ -14,7 +19,7 @@ type testInfo struct {
 	userID      string
 	userName    string
 	roomName    string
-	db          *database.Database
+	db          *dbservice.ServiceDB
 	test        *testing.T
 }
 
@@ -31,8 +36,21 @@ func TestDatabase(t *testing.T) {
 		test:        t,
 	}
 
-	test.db = &database.Database{}
-	test.db.Init()
+	if err := godotenv.Load("db.env"); err != nil {
+		log.Printf("env file read: %v", err)
+	}
+
+	dbSource := fmt.Sprintf(
+		"host=" + os.Getenv("HOST") +
+			" port=" + os.Getenv("PORT") +
+			" user=" + os.Getenv("USER") +
+			" password=" + os.Getenv("PASS") +
+			" dbname=" + os.Getenv("NAME") +
+			" sslmode=" + os.Getenv("SSL"),
+	)
+
+	test.db = &dbservice.ServiceDB{}
+	test.db.Init(dbSource)
 
 	test.addNewRoom()
 	test.addExistentRoom()
