@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	allroomsservice "github.com/nndergunov/RTGC-Project/pkg/app/allrooms"
+	"github.com/nndergunov/RTGC-Project/pkg/app/allrooms"
 	"github.com/nndergunov/RTGC-Project/pkg/domain"
 )
 
@@ -12,12 +12,11 @@ import (
 var errUnknownAction = errors.New("action not supported")
 
 type Router struct {
-	roomList *allroomsservice.AllRooms
+	roomList *allrooms.AllRooms
 }
 
-func (r *Router) Init() {
-	r.roomList = &allroomsservice.AllRooms{}
-	r.roomList.Init()
+func (r *Router) Init(rl *allrooms.AllRooms) {
+	r.roomList = rl
 }
 
 // ActionHandler sends request to the correct handler.

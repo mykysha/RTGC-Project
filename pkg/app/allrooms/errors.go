@@ -1,4 +1,4 @@
-package allroomsservice
+package allrooms
 
 import "errors"
 
