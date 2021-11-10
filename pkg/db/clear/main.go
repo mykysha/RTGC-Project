@@ -1,20 +1,37 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
-	database "github.com/nndergunov/RTGC-Project/pkg/db/service"
+	"github.com/joho/godotenv"
+	dbservice "github.com/nndergunov/RTGC-Project/pkg/db/service"
 )
 
 func main() {
-	db := database.Database{}
-	db.Init()
+	if err := godotenv.Load("db.env"); err != nil {
+		log.Printf("env file read: %v", err)
+	}
+
+	dbSource := fmt.Sprintf(
+		"host=" + os.Getenv("HOST") +
+			" port=" + os.Getenv("PORT") +
+			" user=" + os.Getenv("USER") +
+			" password=" + os.Getenv("PASS") +
+			" dbname=" + os.Getenv("NAME") +
+			" sslmode=" + os.Getenv("SSL"),
+	)
+
+	db := dbservice.ServiceDB{}
+
+	db.Init(dbSource)
 
 	delUsers(db)
 	delRooms(db)
 }
 
-func delRooms(db database.Database) {
+func delRooms(db dbservice.ServiceDB) {
 	rooms, err := db.ReadAllRooms()
 	if err != nil {
 		log.Fatal(err)
@@ -28,7 +45,7 @@ func delRooms(db database.Database) {
 	}
 }
 
-func delUsers(db database.Database) {
+func delUsers(db dbservice.ServiceDB) {
 	users, err := db.ReadAllUsers()
 	if err != nil {
 		log.Fatal(err)

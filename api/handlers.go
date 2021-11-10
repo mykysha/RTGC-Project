@@ -26,18 +26,15 @@ type session struct {
 	idToSession   map[string]*websocket.Conn
 }
 
-func (a *API) Init(m *http.ServeMux, l *log.Logger) {
+func (a *API) Init(m *http.ServeMux, l *log.Logger, r *app.Router) {
 	a.mux = m
 	a.log = l
+	a.requestRouter = r
 
 	a.sessions = session{
 		sessionStatus: make(map[*websocket.Conn]bool),
 		idToSession:   make(map[string]*websocket.Conn),
 	}
-
-	a.requestRouter = &app.Router{}
-
-	a.requestRouter.Init()
 
 	a.mux.HandleFunc("/app/status", a.statusHandler)
 	a.mux.HandleFunc("/app/ws", a.wsHandler)

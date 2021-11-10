@@ -1,11 +1,11 @@
-package allroomsservice
+package allrooms
 
 import (
 	"fmt"
 	"log"
 
-	roomservice "github.com/nndergunov/RTGC-Project/pkg/app/room"
-	database "github.com/nndergunov/RTGC-Project/pkg/db/service"
+	"github.com/nndergunov/RTGC-Project/pkg/app/room"
+	dbservice "github.com/nndergunov/RTGC-Project/pkg/db/service"
 	"github.com/nndergunov/RTGC-Project/pkg/domain"
 )
 
@@ -13,17 +13,16 @@ import (
 const ServerUserName = "SERVER"
 
 type AllRooms struct {
-	rooms        map[string]*roomservice.RoomService
+	rooms        map[string]*room.Room
 	roomNameToID map[string]int
-	db           *database.Database
+	db           *dbservice.ServiceDB
 }
 
-func (a *AllRooms) Init() {
-	a.rooms = make(map[string]*roomservice.RoomService)
+func (a *AllRooms) Init(db *dbservice.ServiceDB) {
+	a.rooms = make(map[string]*room.Room)
 	a.roomNameToID = make(map[string]int)
 
-	a.db = &database.Database{}
-	a.db.Init()
+	a.db = db
 
 	err := a.fetchRooms()
 	if err != nil {
@@ -45,7 +44,7 @@ func (a *AllRooms) fetchRooms() error {
 
 	for _, val := range rooms {
 		if !a.roomExists(*val.Name) {
-			nr := roomservice.RoomService{
+			nr := room.Room{
 				Room: &domain.Room{
 					Name: *val.Name,
 				},
@@ -94,7 +93,7 @@ func (a *AllRooms) fetchUsers() error {
 
 // newRoom creates new room.
 func (a *AllRooms) newRoom(userName, roomName string) error {
-	nr := roomservice.RoomService{
+	nr := room.Room{
 		Room: &domain.Room{
 			Name: roomName,
 		},
@@ -136,7 +135,7 @@ func (a AllRooms) findRoomByID(id int) (string, bool) {
 
 // Join connects user to the desired room.
 func (a *AllRooms) Join(userID, userName, roomName string) error {
-	if userName == "SERVER" || userName == "ADMIN" {
+	if userName == ServerUserName || userName == "ADMIN" {
 		return fmt.Errorf("%w: '%s'", errUnsupportedUsername, userName)
 	}
 

@@ -1,4 +1,4 @@
-package roomservice
+package room
 
 import (
 	"fmt"
@@ -11,14 +11,14 @@ import (
 // ServerUserName exists as a user in every room.
 const ServerUserName = "SERVER"
 
-type RoomService struct {
+type Room struct {
 	Room          *domain.Room
 	UserList      map[string]string // username - userid
 	UserIDToRowID map[string]int    // userid - database row id
 }
 
 // Connecter adds the user to the desired room.
-func (r *RoomService) Connecter(id, userName string) error {
+func (r *Room) Connecter(id, userName string) error {
 	userNameInRoom, err := r.idToUserName(id)
 	if err == nil {
 		return fmt.Errorf("%w : '%v', '%v', '%v'", errID, id, r.Room.Name, userNameInRoom)
@@ -36,7 +36,7 @@ func (r *RoomService) Connecter(id, userName string) error {
 }
 
 // Leaver deletes user from the desired room.
-func (r *RoomService) Leaver(userID string) (string, error) {
+func (r *Room) Leaver(userID string) (string, error) {
 	userName, err := r.idToUserName(userID)
 	if err != nil {
 		return "", err
@@ -49,7 +49,7 @@ func (r *RoomService) Leaver(userID string) (string, error) {
 }
 
 // Messenger gives server list of users in a room that have to receive given message.
-func (r RoomService) Messenger(userID, roomName, text string) (*domain.Message, error) {
+func (r Room) Messenger(userID, roomName, text string) (*domain.Message, error) {
 	m := domain.Message{
 		FromUserName: "",
 		ToRoomName:   roomName,
@@ -76,7 +76,7 @@ func (r RoomService) Messenger(userID, roomName, text string) (*domain.Message, 
 	return &m, nil
 }
 
-func (r RoomService) idToUserName(userID string) (string, error) {
+func (r Room) idToUserName(userID string) (string, error) {
 	var userName string
 
 	for currentName, currentID := range r.UserList {
@@ -90,7 +90,7 @@ func (r RoomService) idToUserName(userID string) (string, error) {
 	return "", fmt.Errorf("%w : '%s', '%s'", errNoUser, userID, r.Room.Name)
 }
 
-func (r RoomService) userNameInRoom(userName string) bool {
+func (r Room) userNameInRoom(userName string) bool {
 	if _, ok := r.UserList[userName]; ok {
 		return true
 	}
