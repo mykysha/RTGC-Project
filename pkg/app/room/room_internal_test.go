@@ -1,4 +1,4 @@
-package roomservice
+package room
 
 import (
 	"errors"
