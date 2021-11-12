@@ -1,19 +1,11 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
-)
-
-// static errors.
-var (
-	errContain = errors.New("unknown command: does not contain ':'")
-	errSplit   = errors.New("unknown command: wrong number of arguments")
-	errCom     = errors.New("unknown command")
 )
 
 // communicator handles user-to-server communication.
@@ -79,6 +71,10 @@ func (c Client) readCommand() ([]string, error) {
 		return nil, errSplit
 	}
 
+	if m[0] == "register" {
+		return nil, fmt.Errorf("%w: %s", errUnauthUse, m[0])
+	}
+
 	c.log.Printf("Sending: action - '%s', '%s', '%s'", m[0], m[1], m[2])
 
 	return m, nil
@@ -95,6 +91,7 @@ func (c Client) wsWriter(m []string) error {
 	}
 
 	switch r.Action {
+	case "register":
 	case "join":
 		r.UserName = m[2]
 	case "send", "leave":

@@ -26,18 +26,15 @@ type session struct {
 	idToSession   map[string]*websocket.Conn
 }
 
-func (a *API) Init(m *http.ServeMux, l *log.Logger) {
+func (a *API) Init(m *http.ServeMux, l *log.Logger, r *app.Router) {
 	a.mux = m
 	a.log = l
+	a.requestRouter = r
 
 	a.sessions = session{
 		sessionStatus: make(map[*websocket.Conn]bool),
 		idToSession:   make(map[string]*websocket.Conn),
 	}
-
-	a.requestRouter = &app.Router{}
-
-	a.requestRouter.Init()
 
 	a.mux.HandleFunc("/app/status", a.statusHandler)
 	a.mux.HandleFunc("/app/ws", a.wsHandler)
@@ -142,19 +139,25 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 }
 
 func (a API) communicator(r v1.Request) error {
-	fromUser, fromRoom, message, toID, err := a.requestRouter.ActionHandler(r.ID, r.Action, r.RoomName, r.UserName, r.Text)
+	msg, err := a.requestRouter.ActionHandler(r.ID, r.Action, r.RoomName, r.UserName, r.Text)
 	if err != nil {
 		return fmt.Errorf("communicator: %w", err)
 	}
 
 	wgSender := new(sync.WaitGroup)
 
-	for _, id := range toID {
+	if msg == nil {
+		return nil
+	}
+
+	for _, id := range msg.ToID {
+		if _, ok := a.sessions.idToSession[id]; !ok {
+			continue
+		}
+
 		wgSender.Add(1)
 
-		go a.sender(a.sessions.idToSession[id], id, fromUser, fromRoom, message)
-
-		wgSender.Done()
+		go a.sender(a.sessions.idToSession[id], id, msg.FromUserName, msg.ToRoomName, msg.Text, wgSender)
 	}
 
 	wgSender.Wait()
@@ -190,7 +193,9 @@ func (a API) errorHandler(ws *websocket.Conn, id string, e bool, err error) {
 }
 
 // sender sends message to desired user.
-func (a API) sender(ws *websocket.Conn, id, fromUser, fromRoom, message string) {
+func (a API) sender(ws *websocket.Conn, id, fromUser, fromRoom, message string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	resp := v1.Response{
 		IsError:     false,
 		IsMessage:   true,
