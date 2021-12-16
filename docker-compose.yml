@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  server:
+    container_name: rtgc
+    build: .
+    ports:
+      - 8080:8080
+    restart: on-failure
+    volumes:
+      - api:/usr/src/app/
+    depends_on:
+      - postgres
+    networks:
+      - rtgcnet
+
+  postgres:
+    image: postgres:latest
+    container_name: rtgc_db_postgres
+    environment:
+      - POSTGRES_USER=${USER}
+      - POSTGRES_PASSWORD=${PASS}
+      - POSTGRES_DB=${NAME}
+      - DATABASE_HOST=${HOST}
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+    networks:
+      - rtgcnet
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      - postgres
+    ports:
+      - "5050:80"
+    networks:
+      - rtgcnet
+    restart: unless-stopped
+
+volumes:
+  api:
+  database_postgres:
+
+networks:
+  rtgcnet:
+    driver: bridge

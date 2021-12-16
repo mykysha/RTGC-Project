@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/joho/godotenv"
-
 	dbservice "github.com/nndergunov/RTGC-Project/pkg/db/service"
 )
 
@@ -36,7 +35,7 @@ func TestDatabase(t *testing.T) {
 		test:        t,
 	}
 
-	if err := godotenv.Load("db.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Printf("env file read: %v", err)
 	}
 

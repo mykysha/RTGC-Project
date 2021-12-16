@@ -17,7 +17,7 @@ import (
 func main() {
 	db := &dbservice.ServiceDB{}
 
-	if err := godotenv.Load("db.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Printf("env file read: %v", err)
 	}
 

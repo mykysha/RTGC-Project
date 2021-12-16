@@ -4,6 +4,7 @@ bin
 
 #Ignore DB info
 *.env
+*.sql
 
 ### Go ###
 # Binaries for programs and plugins
