@@ -1,3 +1,17 @@
+rebuild-docker:
+	docker-compose down --remove-orphans --volumes
+	docker-compose up --build
+
+update-docker:
+	docker build -t rtgc-project_server .
+	docker run -dp
+
+docker-down:
+	docker-compose down
+
+docker-up:
+	docker-compose up -d
+
 go-lint:
 	gofmt -l -s -w .
 	golangci-lint run --enable-all

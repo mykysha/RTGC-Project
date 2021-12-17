@@ -88,9 +88,13 @@ func (a API) wsHandler(w http.ResponseWriter, r *http.Request) {
 	a.sessions.sessionStatus[ws] = true
 
 	defer func(ws *websocket.Conn) {
+		id := a.findID(ws)
+
+		a.log.Printf("Client %s disconnected", id)
+
 		delete(a.sessions.sessionStatus, ws)
 
-		err := ws.Close()
+		err = ws.Close()
 		if err != nil {
 			a.log.Printf("close fail: %v", err)
 		}
@@ -113,10 +117,7 @@ func (a API) reader(ws *websocket.Conn, wg *sync.WaitGroup) {
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
-			a.log.Printf("reader: %v", err)
-			a.errorHandler(ws, "err", true, err)
-
-			continue
+			break
 		}
 
 		r, err := decode(msg)
@@ -217,4 +218,14 @@ func (a API) sender(ws *websocket.Conn, id, fromUser, fromRoom, message string, 
 	if err != nil {
 		a.log.Print(err)
 	}
+}
+
+func (a API) findID(ws *websocket.Conn) string {
+	for key, val := range a.sessions.idToSession {
+		if val == ws {
+			return key
+		}
+	}
+
+	return ""
 }
