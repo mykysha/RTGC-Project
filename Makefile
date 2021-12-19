@@ -26,10 +26,10 @@ go-gci:
 	gci -local "github.com/nndergunov" -w .
 
 go-server:
-	go run cmd/server/main.go
+	go run server/cmd/main.go
 
 go-client:
-	go run cmd/client/main.go
+	go run client/main.go
 
 go-unit-test:
 	go test pkg/app/room/room_internal_test.go -v
@@ -41,16 +41,16 @@ go_e2e-test:
 	go test tests/e2eserver_test.go -v
 
 go-clearDB:
-	go run pkg/db/clear/main.go
+	go run server/pkg/db/clear/main.go
 
 go-build-mac:
-	GOOS=darwin GOARCH=amd64 go build -o bin/mac/server cmd/server/main.go
-	GOOS=darwin GOARCH=amd64 go build -o bin/mac/client cmd/client/main.go
+	GOOS=darwin GOARCH=amd64 go build -o bin/mac/server server/cmd/main.go
+	GOOS=darwin GOARCH=amd64 go build -o bin/mac/client client/main.go
 
 go-build-win:
-	GOOS=windows GOARCH=amd64 go build -o bin/win/server.exe cmd/server/main.go
-	GOOS=windows GOARCH=amd64 go build -o bin/win/client.exe cmd/client/main.go
+	GOOS=windows GOARCH=amd64 go build -o bin/win/server.exe server/cmd/main.go
+	GOOS=windows GOARCH=amd64 go build -o bin/win/client.exe client/main.go
 
 go-build-linux:
-	GOOS=linux GOARCH=amd64 go build -o bin/linux/server cmd/server/main.go
-	GOOS=linux GOARCH=amd64 go build -o bin/linux/client cmd/client/main.go
+	GOOS=linux GOARCH=amd64 go build -o bin/linux/server server/cmd/main.go
+	GOOS=linux GOARCH=amd64 go build -o bin/linux/client client/main.go
