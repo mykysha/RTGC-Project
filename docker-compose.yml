@@ -1,17 +1,22 @@
 version: '3.8'
 services:
   server:
-    container_name: rtgc
-    build: .
+    container_name: rtgc-server
+    build: ./server
     ports:
       - 8080:8080
     restart: on-failure
-    volumes:
-      - api:/usr/src/app/
     depends_on:
       - postgres
     networks:
       - rtgcnet
+
+  client:
+    container_name: rtgc-client
+    build: ./client
+    depends_on:
+      - server
+    network_mode: host
 
   postgres:
     image: postgres:latest

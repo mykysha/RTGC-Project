@@ -1,3 +1,6 @@
+run-client:
+	docker run -it --entrypoint sh rtgc-project_client
+
 rebuild-docker:
 	docker-compose down --remove-orphans --volumes
 	docker-compose up --build
@@ -6,10 +9,10 @@ update-docker:
 	docker build -t rtgc-project_server .
 	docker run -dp
 
-docker-down:
+down-docker:
 	docker-compose down
 
-docker-up:
+up-docker:
 	docker-compose up -d
 
 go-lint:
