@@ -38,7 +38,7 @@ services:
     container_name: pgadmin4
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASS}
     depends_on:
       - postgres
     ports:
