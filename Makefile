@@ -1,5 +1,6 @@
 run-client:
-	docker run -it --entrypoint sh rtgc_client
+
+	docker run -it client_app
 
 rebuild-docker:
 	docker-compose down --remove-orphans --volumes
