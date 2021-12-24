@@ -5,14 +5,14 @@ import (
 	"log"
 	"time"
 
-	domain2 "github.com/nndergunov/RTGC-Project/server/pkg/domain"
+	"github.com/nndergunov/RTGC-Project/server/pkg/domain"
 )
 
 // ServerUserName exists as a user in every room.
 const ServerUserName = "SERVER"
 
 type Room struct {
-	Room          *domain2.Room
+	Room          *domain.Room
 	UserList      map[string]string // username - userid
 	UserIDToRowID map[string]int    // userid - database row id
 }
@@ -49,8 +49,8 @@ func (r *Room) Leaver(userID string) (string, error) {
 }
 
 // Messenger gives server list of users in a room that have to receive given message.
-func (r Room) Messenger(userID, roomName, text string) (*domain2.Message, error) {
-	m := domain2.Message{
+func (r Room) Messenger(userID, roomName, text string) (*domain.Message, error) {
+	m := domain.Message{
 		FromUserName: "",
 		ToRoomName:   roomName,
 		ToID:         nil,

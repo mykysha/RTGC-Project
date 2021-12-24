@@ -1,5 +1,4 @@
 run-client:
-
 	docker run -it client_app
 
 rebuild-docker:

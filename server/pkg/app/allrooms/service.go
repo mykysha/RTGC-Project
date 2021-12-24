@@ -6,7 +6,7 @@ import (
 
 	"github.com/nndergunov/RTGC-Project/server/pkg/app/room"
 	dbservice "github.com/nndergunov/RTGC-Project/server/pkg/db/service"
-	domain2 "github.com/nndergunov/RTGC-Project/server/pkg/domain"
+	"github.com/nndergunov/RTGC-Project/server/pkg/domain"
 )
 
 // ServerUserName exists as a user in every room.
@@ -45,7 +45,7 @@ func (a *AllRooms) fetchRooms() error {
 	for _, val := range rooms {
 		if !a.roomExists(*val.Name) {
 			nr := room.Room{
-				Room: &domain2.Room{
+				Room: &domain.Room{
 					Name: *val.Name,
 				},
 				UserList:      make(map[string]string),
@@ -94,7 +94,7 @@ func (a *AllRooms) fetchUsers() error {
 // newRoom creates new room.
 func (a *AllRooms) newRoom(userName, roomName string) error {
 	nr := room.Room{
-		Room: &domain2.Room{
+		Room: &domain.Room{
 			Name: roomName,
 		},
 		UserList:      make(map[string]string),
@@ -189,7 +189,7 @@ func (a *AllRooms) Leave(userID, roomName, text string) (string, error) {
 }
 
 // Send delivers message to the desired room.
-func (a AllRooms) Send(id, roomName, text string) (*domain2.Message, error) {
+func (a AllRooms) Send(id, roomName, text string) (*domain.Message, error) {
 	if !a.roomExists(roomName) {
 		return nil, fmt.Errorf("%w: '%s'", errNoRoom, roomName)
 	}

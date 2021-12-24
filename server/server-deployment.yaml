@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: rtgc-server
+    labels:
+      app: rtgc-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rtgc-server
+  template:
+    metadata:
+      labels:
+        app: rtgc-server
+    spec:
+      containers:
+        - name: rtgc-server
+          image: nndergunov/rtgc:test
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rtgc-service
+spec:
+  selector:
+    app: rtgc-server
+  type: LoadBalancer
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 30000
