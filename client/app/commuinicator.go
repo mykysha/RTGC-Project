@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -55,9 +56,15 @@ func (c Client) readCommand() ([]string, error) {
 		return nil, fmt.Errorf("write to readCommand: %w", err)
 	}
 
-	msg, err := c.reader.ReadString('\n')
-	if err != nil {
-		return nil, fmt.Errorf("read from readCommand: %w", err)
+	var msg string
+
+	for {
+		msg, err = c.reader.ReadString('\n')
+		if err == nil {
+			break
+		}
+
+		time.Sleep(time.Second)
 	}
 
 	msg = strings.ReplaceAll(msg, "\n", "")

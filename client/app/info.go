@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 // getInfo receives user information.
@@ -16,9 +17,15 @@ func (c *Client) getInfo() error {
 		return fmt.Errorf("write to readCommand: %w", err)
 	}
 
-	id, err := c.reader.ReadString('\n')
-	if err != nil {
-		return fmt.Errorf("read from readCommand: %w", err)
+	var id string
+
+	for {
+		id, err = c.reader.ReadString('\n')
+		if err == nil {
+			break
+		}
+
+		time.Sleep(time.Second)
 	}
 
 	c.id = strings.ReplaceAll(id, "\n", "")

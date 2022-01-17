@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rtgc-client
+  labels:
+    app: rtgc-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rtgc-client
+  template:
+    metadata:
+      labels:
+        app: rtgc-client
+    spec:
+      containers:
+        - name: rtgc-client
+          image: nndergunov/rtgc:client
+          envFrom:
+            - configMapRef:
+                name: client-configuration
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rtgcclient-service
+spec:
+  type: NodePort
+  selector:
+    app: rtgc-client
+  ports:
+    - port: 8888
+      protocol: TCP
+      targetPort: 8888
