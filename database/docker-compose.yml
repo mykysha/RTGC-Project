@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: db-postgres
+    environment:
+      - POSTGRES_USER=${USER}
+      - POSTGRES_PASSWORD=${PASS}
+      - POSTGRES_DB=${NAME}
+      - DATABASE_HOST=${HOST}
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+    networks:
+      - dbnet
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASS}
+    depends_on:
+      - postgres
+    ports:
+      - "5050:80"
+    networks:
+      - dbnet
+    restart: unless-stopped
+
+volumes:
+  database_postgres:
+
+networks:
+  dbnet:
+    driver: bridge

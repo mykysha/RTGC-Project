@@ -4,6 +4,8 @@ bin
 
 #Ignore DB info
 *.env
+*.sql
+*secrets.yaml
 
 ### Go ###
 # Binaries for programs and plugins
